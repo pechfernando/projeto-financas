@@ -1,0 +1,160 @@
+:root {
+    --laranja: #ea6524;
+    --verde: #1a9c6d;
+    --vermelho: #d64545;
+    --cinza-claro: #f5f5f5;
+    --cinza-borda: #e0e0e0;
+    --texto: #222;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    background: var(--cinza-claro);
+    color: var(--texto);
+}
+
+header {
+    background: linear-gradient(90deg, #f2a13c, var(--laranja));
+    padding: 20px;
+}
+
+header h1 {
+    margin: 0;
+    color: white;
+    font-weight: 700;
+}
+
+main {
+    max-width: 800px;
+    margin: 24px auto;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.card h2 {
+    margin-top: 0;
+}
+
+.campo {
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+}
+
+input, select {
+    padding: 10px;
+    border: 1px solid var(--cinza-borda);
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+.acoes-formulario {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    background: var(--laranja);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button.secundario {
+    background: transparent;
+    color: #555;
+    border: 1px solid var(--cinza-borda);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+th, td {
+    text-align: left;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--cinza-borda);
+}
+
+th {
+    color: #777;
+    font-weight: 600;
+}
+
+.status-pendente {
+    color: var(--vermelho);
+    font-weight: 600;
+}
+
+.status-pago {
+    color: var(--verde);
+    font-weight: 600;
+}
+
+.acoes-linha button {
+    padding: 6px 10px;
+    font-size: 13px;
+    margin-right: 4px;
+}
+
+.acoes-linha .apagar {
+    background: var(--vermelho);
+}
+
+.mensagem-erro {
+    color: var(--vermelho);
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+@media (max-width: 600px) {
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+    thead {
+        display: none;
+    }
+    td {
+        padding-left: 45%;
+        position: relative;
+        border-bottom: none;
+    }
+    td::before {
+        content: attr(data-rotulo);
+        position: absolute;
+        left: 8px;
+        font-weight: 600;
+        color: #777;
+    }
+    tr {
+        border-bottom: 1px solid var(--cinza-borda);
+        padding: 8px 0;
+    }
+}

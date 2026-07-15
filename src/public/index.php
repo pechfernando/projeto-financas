@@ -36,5 +36,7 @@ $tabelas = $stmt->fetchAll(PDO::FETCH_COLUMN);
         <p>Nenhuma tabela encontrada ainda. Se você acabou de subir os containers,
         o schema.sql deveria ter rodado automaticamente. Veja o README para mais detalhes.</p>
     <?php endif; ?>
+
+    <p><a href="/app/">→ Ir para a tela de Lançamentos</a></p>
 </body>
 </html>
