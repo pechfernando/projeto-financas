@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  # Servidor PHP + Apache
+  app:
+    build:
+      context: ./docker/php
+    container_name: financas_app
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - db
+
+  # Banco de dados MySQL
+  db:
+    image: mysql:8.0
+    container_name: financas_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
+      # ^ Qualquer .sql colocado em /database roda automaticamente
+      #   na primeira vez que o container é criado
+
+  # Interface visual para o banco de dados (opcional, mas útil)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: financas_phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: ${DB_USER}
+      PMA_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - db
+
+volumes:
+  db_data:
