@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 -- =====================================================================
 -- DADOS INICIAIS DE TESTE (rodados automaticamente após o schema.sql)
 -- Isso é só para desenvolvimento local — os dados reais virão da

@@ -25,10 +25,12 @@ require_once __DIR__ . '/../../app/Api/Auth.php';
 require_once __DIR__ . '/../../app/Models/Lancamento.php';
 require_once __DIR__ . '/../../app/Models/Categoria.php';
 require_once __DIR__ . '/../../app/Models/FormaPagamento.php';
+require_once __DIR__ . '/../../app/Models/RelatorioMensal.php';
 
 require_once __DIR__ . '/../../app/Api/Controllers/LancamentosController.php';
 require_once __DIR__ . '/../../app/Api/Controllers/CategoriasController.php';
 require_once __DIR__ . '/../../app/Api/Controllers/FormasPagamentoController.php';
+require_once __DIR__ . '/../../app/Api/Controllers/RelatorioMensalController.php';
 
 // Trata qualquer erro inesperado como uma resposta JSON (em vez de
 // devolver uma página de erro HTML, que quebraria o frontend)
@@ -41,6 +43,7 @@ $pdo = getConexaoBanco();
 $lancamentosController = new LancamentosController(new Lancamento($pdo));
 $categoriasController = new CategoriasController(new Categoria($pdo));
 $formasPagamentoController = new FormasPagamentoController(new FormaPagamento($pdo));
+$relatorioMensalController = new RelatorioMensalController(new RelatorioMensal($pdo));
 
 $router = new Router();
 
@@ -58,6 +61,9 @@ $router->post('/categorias', [$categoriasController, 'criar']);
 // Formas de pagamento
 $router->get('/formas-pagamento', [$formasPagamentoController, 'listar']);
 $router->post('/formas-pagamento', [$formasPagamentoController, 'criar']);
+
+// Relatório mensal
+$router->get('/relatorio-mensal', [$relatorioMensalController, 'resumo']);
 
 // Descobre o caminho da requisição, removendo o prefixo /api
 $caminhoCompleto = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

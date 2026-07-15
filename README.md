@@ -66,8 +66,8 @@ projeto-financas/
 
 ## Próximos passos
 
-- [ ] Fase 1: CRUD de lançamentos + categorias + formas de pagamento
-- [ ] Fase 2: Relatório mensal (totais por categoria + gráfico)
+- [x] Fase 1: CRUD de lançamentos + categorias + formas de pagamento
+- [x] Fase 2: Relatório mensal (totais por categoria + gráfico)
 - [ ] Fase 3: Orçamento + saldo/fluxo de caixa
 - [ ] Fase 4: Investimentos
 - [ ] Fase 5: Patrimônio

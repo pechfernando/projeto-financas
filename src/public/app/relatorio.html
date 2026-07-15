@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>plano. — Relatório Mensal</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>plano.</h1>
+        <nav>
+            <a href="/app/">Lançamentos</a>
+            <a href="/app/relatorio.html" class="ativo">Relatório Mensal</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="card">
+            <div class="seletor-periodo">
+                <div class="campo">
+                    <label for="mes">Mês</label>
+                    <select id="mes"></select>
+                </div>
+                <div class="campo">
+                    <label for="ano">Ano</label>
+                    <select id="ano"></select>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Resumo do Mês</h2>
+            <div class="totais-tipo" id="totais-tipo"></div>
+            <p class="saldo-mes" id="saldo-mes"></p>
+        </section>
+
+        <section class="card">
+            <h2>Apontamento por Categoria</h2>
+            <table id="tabela-relatorio">
+                <thead>
+                    <tr>
+                        <th>Categoria</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="corpo-tabela-relatorio">
+                    <tr><td colspan="2">Carregando...</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="card">
+            <h2>Gastos Variáveis do Período</h2>
+            <div class="container-grafico">
+                <canvas id="grafico-variaveis"></canvas>
+            </div>
+            <p id="mensagem-sem-variaveis" hidden>Nenhum gasto variável nesse mês.</p>
+        </section>
+    </main>
+
+    <script src="relatorio.js"></script>
+</body>
+</html>

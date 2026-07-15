@@ -29,6 +29,79 @@ header h1 {
     font-weight: 700;
 }
 
+nav {
+    margin-top: 10px;
+    display: flex;
+    gap: 16px;
+}
+
+nav a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid transparent;
+}
+
+nav a.ativo {
+    color: white;
+    border-bottom-color: white;
+}
+
+.seletor-periodo {
+    display: flex;
+    gap: 16px;
+}
+
+.seletor-periodo .campo {
+    flex: 1;
+}
+
+.totais-tipo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.total-tipo-item {
+    background: var(--cinza-claro);
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+
+.total-tipo-item .rotulo {
+    font-size: 13px;
+    color: #777;
+    display: block;
+}
+
+.total-tipo-item .valor {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.saldo-mes {
+    font-size: 16px;
+    font-weight: 700;
+    padding-top: 8px;
+    border-top: 1px solid var(--cinza-borda);
+}
+
+.saldo-positivo {
+    color: var(--verde);
+}
+
+.saldo-negativo {
+    color: var(--vermelho);
+}
+
+.container-grafico {
+    max-width: 380px;
+    margin: 0 auto;
+}
+
 main {
     max-width: 800px;
     margin: 24px auto;
