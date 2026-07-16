@@ -132,6 +132,9 @@ CREATE TABLE movimentacoes_investimentos (
 -- =====================================================================
 -- 8. RENDIMENTOS DE INVESTIMENTOS
 -- Dividendos/rendimentos recebidos por ativo, por mês
+-- 'lancamento_id' vincula esse rendimento a um lançamento de receita
+-- gerado automaticamente, para que ele apareça no Relatório Mensal,
+-- Orçamento e Fluxo de Caixa como "Receita: Investimentos"
 -- =====================================================================
 CREATE TABLE rendimentos_investimentos (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -141,8 +144,10 @@ CREATE TABLE rendimentos_investimentos (
     ano SMALLINT UNSIGNED NOT NULL,
     valor DECIMAL(12,2) NOT NULL,
     data_recebimento DATE NULL,
+    lancamento_id INT UNSIGNED NULL,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
     FOREIGN KEY (ativo_id) REFERENCES ativos(id),
+    FOREIGN KEY (lancamento_id) REFERENCES lancamentos(id) ON DELETE SET NULL,
     UNIQUE KEY uq_rendimento (ativo_id, mes, ano)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

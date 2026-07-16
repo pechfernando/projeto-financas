@@ -31,6 +31,7 @@ require_once __DIR__ . '/../../app/Models/FluxoCaixa.php';
 require_once __DIR__ . '/../../app/Models/Ativo.php';
 require_once __DIR__ . '/../../app/Models/MovimentacaoInvestimento.php';
 require_once __DIR__ . '/../../app/Models/RendimentoInvestimento.php';
+require_once __DIR__ . '/../../app/Models/Patrimonio.php';
 
 require_once __DIR__ . '/../../app/Api/Controllers/LancamentosController.php';
 require_once __DIR__ . '/../../app/Api/Controllers/CategoriasController.php';
@@ -41,6 +42,7 @@ require_once __DIR__ . '/../../app/Api/Controllers/FluxoCaixaController.php';
 require_once __DIR__ . '/../../app/Api/Controllers/AtivosController.php';
 require_once __DIR__ . '/../../app/Api/Controllers/MovimentacoesInvestimentosController.php';
 require_once __DIR__ . '/../../app/Api/Controllers/RendimentosInvestimentosController.php';
+require_once __DIR__ . '/../../app/Api/Controllers/PatrimonioController.php';
 
 // Trata qualquer erro inesperado como uma resposta JSON (em vez de
 // devolver uma página de erro HTML, que quebraria o frontend)
@@ -58,7 +60,10 @@ $orcamentoController = new OrcamentoController(new Orcamento($pdo));
 $fluxoCaixaController = new FluxoCaixaController(new FluxoCaixa($pdo));
 $ativosController = new AtivosController(new Ativo($pdo));
 $movimentacoesController = new MovimentacoesInvestimentosController(new MovimentacaoInvestimento($pdo));
-$rendimentosController = new RendimentosInvestimentosController(new RendimentoInvestimento($pdo));
+$rendimentosController = new RendimentosInvestimentosController(
+    new RendimentoInvestimento($pdo, new Categoria($pdo), new FormaPagamento($pdo))
+);
+$patrimonioController = new PatrimonioController(new Patrimonio($pdo), new FluxoCaixa($pdo));
 
 $router = new Router();
 
@@ -99,6 +104,13 @@ $router->get('/carteira-investimentos', [$movimentacoesController, 'carteira']);
 
 $router->get('/rendimentos-investimentos', [$rendimentosController, 'listar']);
 $router->post('/rendimentos-investimentos', [$rendimentosController, 'criar']);
+
+// Patrimônio
+$router->get('/contas-patrimonio', [$patrimonioController, 'listarContas']);
+$router->post('/contas-patrimonio', [$patrimonioController, 'criarConta']);
+$router->get('/saldos-mensais', [$patrimonioController, 'saldosDoMes']);
+$router->post('/saldos-mensais', [$patrimonioController, 'salvarSaldos']);
+$router->get('/evolucao-patrimonial', [$patrimonioController, 'evolucao']);
 
 // Descobre o caminho da requisição, removendo o prefixo /api
 $caminhoCompleto = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

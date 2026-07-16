@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>plano. — Patrimônio</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>plano.</h1>
+        <nav>
+            <a href="/app/">Lançamentos</a>
+            <a href="/app/relatorio.html">Relatório Mensal</a>
+            <a href="/app/orcamento.html">Orçamento</a>
+            <a href="/app/fluxo-caixa.html">Fluxo de Caixa</a>
+            <a href="/app/investimentos.html">Investimentos</a>
+            <a href="/app/patrimonio.html" class="ativo">Patrimônio</a>
+            <a href="/app/rendimentos.html">Rendimentos</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="card">
+            <div class="seletor-periodo">
+                <div class="campo">
+                    <label for="mes">Mês</label>
+                    <select id="mes"></select>
+                </div>
+                <div class="campo">
+                    <label for="ano">Ano</label>
+                    <select id="ano"></select>
+                </div>
+            </div>
+        </section>
+
+        <section class="card" id="card-reconciliacao">
+            <h2>Reconciliação</h2>
+            <p class="ajuda">
+                Compara o saldo real (soma do que você lançou abaixo em cada conta) com o
+                saldo calculado (receitas menos despesas acumuladas no Fluxo de Caixa).
+                Uma diferença grande pode indicar um lançamento esquecido ou um saldo
+                digitado errado.
+            </p>
+            <table class="tabela-reconciliacao">
+                <tbody>
+                    <tr>
+                        <td>Saldo Real (contas)</td>
+                        <td id="valor-saldo-real">—</td>
+                    </tr>
+                    <tr>
+                        <td>Saldo Calculado (fluxo de caixa)</td>
+                        <td id="valor-saldo-calculado">—</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Diferença</strong></td>
+                        <td id="valor-diferenca"><strong>—</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="card">
+            <h2>Saldos das Contas</h2>
+            <p class="ajuda">Lance aqui o saldo de cada conta no fim deste mês.</p>
+            <form id="form-saldos">
+                <table id="tabela-saldos">
+                    <thead>
+                        <tr>
+                            <th>Conta</th>
+                            <th>Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela-saldos">
+                        <tr><td colspan="2">Carregando...</td></tr>
+                    </tbody>
+                </table>
+                <div class="acoes-formulario">
+                    <button type="submit">Salvar Saldos</button>
+                </div>
+                <p id="mensagem-sucesso-saldos" class="mensagem-sucesso" hidden>Saldos salvos com sucesso!</p>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>Evolução Patrimonial</h2>
+            <div class="container-grafico container-grafico-linha">
+                <canvas id="grafico-patrimonio"></canvas>
+            </div>
+            <p id="mensagem-sem-evolucao" hidden>Ainda não há saldos suficientes lançados para mostrar a evolução.</p>
+        </section>
+
+        <section class="card">
+            <h2>Cadastrar Conta</h2>
+            <p class="ajuda">Cadastre aqui uma vez cada conta/local onde seu dinheiro fica (banco, corretora, dinheiro em espécie...).</p>
+            <form id="form-conta">
+                <div class="campo">
+                    <label for="conta-nome">Nome</label>
+                    <input type="text" id="conta-nome" placeholder="Ex: Itaú, Inter, Dinheiro" required>
+                </div>
+                <div class="campo">
+                    <label for="conta-tipo">Tipo (opcional)</label>
+                    <input type="text" id="conta-tipo" placeholder="Ex: conta corrente, investimento, dinheiro físico">
+                </div>
+                <div class="acoes-formulario">
+                    <button type="submit">Cadastrar Conta</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script src="patrimonio.js"></script>
+</body>
+</html>

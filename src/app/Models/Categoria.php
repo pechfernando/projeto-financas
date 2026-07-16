@@ -38,4 +38,29 @@ class Categoria
         ]);
         return (int) $this->pdo->lastInsertId();
     }
+
+    /**
+     * Retorna o id da categoria "Investimentos" (tipo receita) do usuário,
+     * criando-a automaticamente na primeira vez — é nela que os rendimentos
+     * de investimentos caem, para aparecerem no Relatório Mensal como receita.
+     */
+    public function buscarOuCriarCategoriaInvestimentos(int $usuarioId): int
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT id FROM categorias WHERE usuario_id = :usuario_id AND tipo = 'receita' AND nome = 'Investimentos'"
+        );
+        $stmt->execute(['usuario_id' => $usuarioId]);
+        $id = $stmt->fetchColumn();
+
+        if ($id !== false) {
+            return (int) $id;
+        }
+
+        return $this->criar([
+            'usuario_id' => $usuarioId,
+            'tipo' => 'receita',
+            'nome' => 'Investimentos',
+            'descricao' => 'Gerada automaticamente para os rendimentos registrados na tela de Investimentos',
+        ]);
+    }
 }

@@ -2,6 +2,7 @@ const API_BASE = '/api';
 
 const totalInvestidoEl = document.getElementById('total-investido');
 const corpoTabelaCarteira = document.getElementById('corpo-tabela-carteira');
+const corpoTabelaHistorico = document.getElementById('corpo-tabela-historico-movimentacoes');
 const canvasGraficoTipo = document.getElementById('grafico-tipo-ativo');
 const mensagemSemInvestimentos = document.getElementById('mensagem-sem-investimentos');
 
@@ -80,6 +81,48 @@ async function carregarCarteira() {
     totalInvestidoEl.innerHTML = `Total investido: <strong>${formatarMoeda(dados.total_investido)}</strong>`;
     renderizarTabelaCarteira(dados.por_ativo);
     renderizarGraficoTipo(dados.por_tipo);
+}
+
+async function carregarHistoricoMovimentacoes() {
+    const resposta = await fetch(`${API_BASE}/movimentacoes-investimentos`);
+    const movimentacoes = await resposta.json();
+    renderizarTabelaHistorico(movimentacoes);
+}
+
+function renderizarTabelaHistorico(movimentacoes) {
+    if (movimentacoes.length === 0) {
+        corpoTabelaHistorico.innerHTML = '<tr><td colspan="6">Nenhuma movimentação registrada ainda.</td></tr>';
+        return;
+    }
+
+    corpoTabelaHistorico.innerHTML = '';
+    for (const mov of movimentacoes) {
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+            <td data-rotulo="Data">${formatarData(mov.data)}</td>
+            <td data-rotulo="Ativo">${mov.ativo_nome}</td>
+            <td data-rotulo="Qtd.">${Number(mov.quantidade).toLocaleString('pt-BR')}</td>
+            <td data-rotulo="Preço Unit.">${formatarMoeda(mov.preco_unitario)}</td>
+            <td data-rotulo="Valor Total">${formatarMoeda(mov.valor_total)}</td>
+            <td class="acoes-linha"><button type="button" class="secundario apagar" data-id="${mov.id}">Apagar</button></td>
+        `;
+        corpoTabelaHistorico.appendChild(linha);
+    }
+
+    corpoTabelaHistorico.querySelectorAll('.apagar').forEach((botao) => {
+        botao.addEventListener('click', async () => {
+            if (!confirm('Apagar essa movimentação? Isso também recalcula sua carteira.')) return;
+
+            await fetch(`${API_BASE}/movimentacoes-investimentos/${botao.dataset.id}`, { method: 'DELETE' });
+            await carregarHistoricoMovimentacoes();
+            await carregarCarteira();
+        });
+    });
+}
+
+function formatarData(dataIso) {
+    const [ano, mes, dia] = dataIso.split('-');
+    return `${dia}/${mes}/${ano}`;
 }
 
 function renderizarTabelaCarteira(porAtivo) {
@@ -162,6 +205,7 @@ formMovimentacao.addEventListener('submit', async (evento) => {
         tipo_movimento: 'compra',
         data: document.getElementById('mov-data').value,
         quantidade: document.getElementById('mov-quantidade').value,
+        preco_unitario: document.getElementById('mov-preco-unitario').value,
         valor_total: document.getElementById('mov-valor-total').value,
     };
 
@@ -175,6 +219,7 @@ formMovimentacao.addEventListener('submit', async (evento) => {
     document.getElementById('mov-data').value = new Date().toISOString().slice(0, 10);
     exibirMensagemSucesso('Compra registrada com sucesso!');
     await carregarCarteira();
+    await carregarHistoricoMovimentacoes();
 });
 
 formRendimento.addEventListener('submit', async (evento) => {
@@ -194,7 +239,7 @@ formRendimento.addEventListener('submit', async (evento) => {
     });
 
     formRendimento.reset();
-    exibirMensagemSucesso('Rendimento registrado com sucesso!');
+    exibirMensagemSucesso('Rendimento registrado e lançado como Receita: Investimentos no seu Relatório Mensal!');
 });
 
 function exibirMensagemSucesso(texto) {
@@ -207,6 +252,7 @@ async function iniciar() {
     iniciarSeletoresData();
     await carregarAtivos();
     await carregarCarteira();
+    await carregarHistoricoMovimentacoes();
 }
 
 iniciar();
