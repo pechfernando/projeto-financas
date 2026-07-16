@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>plano. — Orçamento</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>plano.</h1>
+        <nav>
+            <a href="/app/">Lançamentos</a>
+            <a href="/app/relatorio.html">Relatório Mensal</a>
+            <a href="/app/orcamento.html" class="ativo">Orçamento</a>
+            <a href="/app/fluxo-caixa.html">Fluxo de Caixa</a>
+            <a href="/app/investimentos.html">Investimentos</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="card">
+            <div class="seletor-periodo">
+                <div class="campo">
+                    <label for="mes">Mês</label>
+                    <select id="mes"></select>
+                </div>
+                <div class="campo">
+                    <label for="ano">Ano</label>
+                    <select id="ano"></select>
+                </div>
+            </div>
+            <button type="button" id="botao-copiar-mes-anterior" class="secundario">
+                Copiar valores do mês anterior
+            </button>
+        </section>
+
+        <section class="card">
+            <h2>Valores Previstos por Categoria</h2>
+            <p class="ajuda">
+                Preencha quanto você planeja gastar/receber em cada categoria neste mês.
+                O valor "Realizado" é atualizado automaticamente conforme você lança
+                gastos e receitas.
+            </p>
+            <form id="form-orcamento">
+                <table id="tabela-orcamento">
+                    <thead>
+                        <tr>
+                            <th>Categoria</th>
+                            <th>Previsto</th>
+                            <th>Realizado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela-orcamento">
+                        <tr><td colspan="3">Carregando...</td></tr>
+                    </tbody>
+                </table>
+                <div class="acoes-formulario">
+                    <button type="submit">Salvar Orçamento</button>
+                </div>
+                <p id="mensagem-sucesso" class="mensagem-sucesso" hidden>Orçamento salvo com sucesso!</p>
+            </form>
+        </section>
+    </main>
+
+    <script src="orcamento.js"></script>
+</body>
+</html>

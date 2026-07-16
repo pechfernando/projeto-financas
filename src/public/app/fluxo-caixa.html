@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>plano. — Relatório Mensal</title>
+    <title>plano. — Fluxo de Caixa</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
@@ -12,9 +12,9 @@
         <h1>plano.</h1>
         <nav>
             <a href="/app/">Lançamentos</a>
-            <a href="/app/relatorio.html" class="ativo">Relatório Mensal</a>
+            <a href="/app/relatorio.html">Relatório Mensal</a>
             <a href="/app/orcamento.html">Orçamento</a>
-            <a href="/app/fluxo-caixa.html">Fluxo de Caixa</a>
+            <a href="/app/fluxo-caixa.html" class="ativo">Fluxo de Caixa</a>
             <a href="/app/investimentos.html">Investimentos</a>
         </nav>
     </header>
@@ -23,7 +23,7 @@
         <section class="card">
             <div class="seletor-periodo">
                 <div class="campo">
-                    <label for="mes">Mês</label>
+                    <label for="mes">Até o mês</label>
                     <select id="mes"></select>
                 </div>
                 <div class="campo">
@@ -33,36 +33,35 @@
             </div>
         </section>
 
-        <section class="card">
-            <h2>Resumo do Mês</h2>
-            <div class="totais-tipo" id="totais-tipo"></div>
-            <p class="saldo-mes" id="saldo-mes"></p>
+        <section class="card" id="card-folego">
+            <h2>Fôlego Financeiro</h2>
+            <p id="texto-folego">Carregando...</p>
         </section>
 
         <section class="card">
-            <h2>Apontamento por Categoria</h2>
-            <table id="tabela-relatorio">
+            <h2>Evolução do Saldo Acumulado</h2>
+            <div class="container-grafico container-grafico-linha">
+                <canvas id="grafico-saldo"></canvas>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Detalhe por Mês</h2>
+            <table id="tabela-fluxo">
                 <thead>
                     <tr>
-                        <th>Categoria</th>
-                        <th>Total</th>
+                        <th>Mês</th>
+                        <th>Saldo do Mês</th>
+                        <th>Saldo Acumulado</th>
                     </tr>
                 </thead>
-                <tbody id="corpo-tabela-relatorio">
-                    <tr><td colspan="2">Carregando...</td></tr>
+                <tbody id="corpo-tabela-fluxo">
+                    <tr><td colspan="3">Carregando...</td></tr>
                 </tbody>
             </table>
         </section>
-
-        <section class="card">
-            <h2>Gastos Variáveis do Período</h2>
-            <div class="container-grafico">
-                <canvas id="grafico-variaveis"></canvas>
-            </div>
-            <p id="mensagem-sem-variaveis" hidden>Nenhum gasto variável nesse mês.</p>
-        </section>
     </main>
 
-    <script src="relatorio.js"></script>
+    <script src="fluxo-caixa.js"></script>
 </body>
 </html>

@@ -33,6 +33,7 @@ nav {
     margin-top: 10px;
     display: flex;
     gap: 16px;
+    flex-wrap: wrap;
 }
 
 nav a {
@@ -100,6 +101,61 @@ nav a.ativo {
 .container-grafico {
     max-width: 380px;
     margin: 0 auto;
+}
+
+.container-grafico-linha {
+    max-width: 100%;
+    height: 280px;
+}
+
+.ajuda {
+    font-size: 13px;
+    color: #777;
+    margin-top: -6px;
+    margin-bottom: 16px;
+}
+
+.grupo-categoria {
+    background: var(--cinza-claro);
+    font-weight: 700;
+    font-size: 13px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.input-previsto {
+    width: 120px;
+}
+
+.valor-estourado {
+    color: var(--vermelho);
+    font-weight: 700;
+}
+
+.mensagem-sucesso {
+    color: var(--verde);
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.total-investido {
+    font-size: 18px;
+    margin-bottom: 16px;
+}
+
+#card-folego {
+    border-left: 4px solid var(--verde);
+}
+
+#card-folego.folego-alerta {
+    border-left-color: var(--vermelho);
+}
+
+@media (max-width: 600px) {
+    .container-grafico-linha {
+        height: 220px;
+    }
 }
 
 main {

@@ -26,11 +26,21 @@ require_once __DIR__ . '/../../app/Models/Lancamento.php';
 require_once __DIR__ . '/../../app/Models/Categoria.php';
 require_once __DIR__ . '/../../app/Models/FormaPagamento.php';
 require_once __DIR__ . '/../../app/Models/RelatorioMensal.php';
+require_once __DIR__ . '/../../app/Models/Orcamento.php';
+require_once __DIR__ . '/../../app/Models/FluxoCaixa.php';
+require_once __DIR__ . '/../../app/Models/Ativo.php';
+require_once __DIR__ . '/../../app/Models/MovimentacaoInvestimento.php';
+require_once __DIR__ . '/../../app/Models/RendimentoInvestimento.php';
 
 require_once __DIR__ . '/../../app/Api/Controllers/LancamentosController.php';
 require_once __DIR__ . '/../../app/Api/Controllers/CategoriasController.php';
 require_once __DIR__ . '/../../app/Api/Controllers/FormasPagamentoController.php';
 require_once __DIR__ . '/../../app/Api/Controllers/RelatorioMensalController.php';
+require_once __DIR__ . '/../../app/Api/Controllers/OrcamentoController.php';
+require_once __DIR__ . '/../../app/Api/Controllers/FluxoCaixaController.php';
+require_once __DIR__ . '/../../app/Api/Controllers/AtivosController.php';
+require_once __DIR__ . '/../../app/Api/Controllers/MovimentacoesInvestimentosController.php';
+require_once __DIR__ . '/../../app/Api/Controllers/RendimentosInvestimentosController.php';
 
 // Trata qualquer erro inesperado como uma resposta JSON (em vez de
 // devolver uma página de erro HTML, que quebraria o frontend)
@@ -44,6 +54,11 @@ $lancamentosController = new LancamentosController(new Lancamento($pdo));
 $categoriasController = new CategoriasController(new Categoria($pdo));
 $formasPagamentoController = new FormasPagamentoController(new FormaPagamento($pdo));
 $relatorioMensalController = new RelatorioMensalController(new RelatorioMensal($pdo));
+$orcamentoController = new OrcamentoController(new Orcamento($pdo));
+$fluxoCaixaController = new FluxoCaixaController(new FluxoCaixa($pdo));
+$ativosController = new AtivosController(new Ativo($pdo));
+$movimentacoesController = new MovimentacoesInvestimentosController(new MovimentacaoInvestimento($pdo));
+$rendimentosController = new RendimentosInvestimentosController(new RendimentoInvestimento($pdo));
 
 $router = new Router();
 
@@ -64,6 +79,26 @@ $router->post('/formas-pagamento', [$formasPagamentoController, 'criar']);
 
 // Relatório mensal
 $router->get('/relatorio-mensal', [$relatorioMensalController, 'resumo']);
+
+// Orçamento mensal
+$router->get('/orcamento-mensal', [$orcamentoController, 'listar']);
+$router->post('/orcamento-mensal', [$orcamentoController, 'salvar']);
+$router->post('/orcamento-mensal/copiar-mes-anterior', [$orcamentoController, 'copiarMesAnterior']);
+
+// Fluxo de caixa
+$router->get('/fluxo-caixa', [$fluxoCaixaController, 'resumo']);
+
+// Investimentos
+$router->get('/ativos', [$ativosController, 'listar']);
+$router->post('/ativos', [$ativosController, 'criar']);
+
+$router->get('/movimentacoes-investimentos', [$movimentacoesController, 'listar']);
+$router->post('/movimentacoes-investimentos', [$movimentacoesController, 'criar']);
+$router->delete('/movimentacoes-investimentos/{id}', [$movimentacoesController, 'apagar']);
+$router->get('/carteira-investimentos', [$movimentacoesController, 'carteira']);
+
+$router->get('/rendimentos-investimentos', [$rendimentosController, 'listar']);
+$router->post('/rendimentos-investimentos', [$rendimentosController, 'criar']);
 
 // Descobre o caminho da requisição, removendo o prefixo /api
 $caminhoCompleto = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

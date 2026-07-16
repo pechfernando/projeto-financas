@@ -68,8 +68,9 @@ projeto-financas/
 
 - [x] Fase 1: CRUD de lançamentos + categorias + formas de pagamento
 - [x] Fase 2: Relatório mensal (totais por categoria + gráfico)
-- [ ] Fase 3: Orçamento + saldo/fluxo de caixa
-- [ ] Fase 4: Investimentos
+- [x] Fase 3: Orçamento + saldo/fluxo de caixa
+- [x] Fase 4: Investimentos
+- [ ] Fase 5: Patrimônio
 - [ ] Fase 5: Patrimônio
 - [ ] Fase 6: PWA / mobile
 - [ ] Fase 7: Migração dos dados da planilha antiga
