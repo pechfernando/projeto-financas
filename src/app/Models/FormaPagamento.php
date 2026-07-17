@@ -38,6 +38,44 @@ class FormaPagamento
         return (int) $this->pdo->lastInsertId();
     }
 
+    public function buscarPorId(int $id, int $usuarioId): ?array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT id, nome, tipo, limite_credito, ativo
+             FROM formas_pagamento WHERE id = :id AND usuario_id = :usuario_id"
+        );
+        $stmt->execute(['id' => $id, 'usuario_id' => $usuarioId]);
+        $resultado = $stmt->fetch();
+        return $resultado ?: null;
+    }
+
+    /**
+     * Atualização completa: dados do cadastro (nome/tipo/limite_credito) e
+     * também o campo 'ativo' — usado tanto para editar quanto para
+     * desativar/reativar a forma de pagamento a partir da tela de
+     * Configurações. Desativar não apaga nem desvincula lançamentos já
+     * feitos com ela; só impede que seja escolhida em lançamentos novos.
+     */
+    public function atualizar(int $id, int $usuarioId, array $dados): bool
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE formas_pagamento SET
+                nome = :nome,
+                tipo = :tipo,
+                limite_credito = :limite_credito,
+                ativo = :ativo
+             WHERE id = :id AND usuario_id = :usuario_id"
+        );
+        return $stmt->execute([
+            'nome' => $dados['nome'],
+            'tipo' => $dados['tipo'],
+            'limite_credito' => $dados['limite_credito'] ?? null,
+            'ativo' => array_key_exists('ativo', $dados) ? (!empty($dados['ativo']) ? 1 : 0) : 1,
+            'id' => $id,
+            'usuario_id' => $usuarioId,
+        ]);
+    }
+
     /**
      * Retorna o id de uma forma de pagamento "débito/dinheiro/pix" do
      * usuário para usar como padrão em lançamentos gerados automaticamente

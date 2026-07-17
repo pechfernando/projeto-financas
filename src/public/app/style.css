@@ -269,6 +269,20 @@ th {
     font-weight: 400;
 }
 
+.campo-checkbox label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-weight: 400;
+    color: var(--texto);
+    font-size: 14px;
+}
+
+.campo-checkbox input[type="checkbox"] {
+    width: auto;
+    margin-top: 3px;
+}
+
 #card-reconciliacao .tabela-reconciliacao td:last-child {
     text-align: right;
     font-variant-numeric: tabular-nums;
