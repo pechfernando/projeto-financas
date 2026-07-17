@@ -10,7 +10,49 @@ class PatrimonioController
 
     public function listarContas(array $parametros): void
     {
-        jsonResponse($this->model->listarContas(usuarioAtualId()));
+        $apenasAtivas = !isset($_GET['todas']) || $_GET['todas'] !== '1';
+        jsonResponse($this->model->listarContas(usuarioAtualId(), $apenasAtivas));
+    }
+
+    public function buscar(array $parametros): void
+    {
+        $id = isset($parametros['id']) ? (int) $parametros['id'] : 0;
+        jsonResponse($this->model->buscarContaPorId($id, usuarioAtualId()));
+    }
+
+    public function atualizar(array $parametros): void
+    {
+        $id = isset($parametros['id']) ? (int) $parametros['id'] : 0;
+        $dados = corpoRequisicao();
+
+        if (empty($dados['nome'])) {
+            jsonError('O campo nome é obrigatório', 422);
+        }
+
+        $dados['usuario_id'] = usuarioAtualId();
+        $this->model->atualizarConta($id, $dados);
+
+        jsonResponse(['mensagem' => 'Conta atualizada com sucesso']);
+    }
+
+    public function apagar(array $parametros): void
+    {
+        $id = isset($parametros['id']) ? (int) $parametros['id'] : 0;
+        
+        try {
+            $sucesso = $this->model->apagarConta($id, usuarioAtualId());
+            if ($sucesso) {
+                jsonResponse(['mensagem' => 'Conta excluída com sucesso']);
+            } else {
+                jsonError('Erro ao excluir conta', 500);
+            }
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23000') {
+                jsonError('Não é possível excluir esta conta pois existem saldos mensais vinculados a ela. Considere desativá-la em vez de excluir.', 400);
+            } else {
+                jsonError('Erro no banco de dados: ' . $e->getMessage(), 500);
+            }
+        }
     }
 
     public function criarConta(array $parametros): void

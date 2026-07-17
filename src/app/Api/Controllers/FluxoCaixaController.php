@@ -6,6 +6,19 @@ class FluxoCaixaController
     {
     }
 
+    public function obterSaldoInicial(array $parametros): void
+    {
+        jsonResponse(['saldo_inicial_caixa' => $this->model->obterSaldoInicial(usuarioAtualId())]);
+    }
+
+    public function salvarSaldoInicial(array $parametros): void
+    {
+        $dados = corpoRequisicao();
+        $valor = isset($dados['saldo_inicial_caixa']) ? (float) $dados['saldo_inicial_caixa'] : 0.00;
+        $this->model->salvarSaldoInicial(usuarioAtualId(), $valor);
+        jsonResponse(['mensagem' => 'Saldo inicial de caixa salvo com sucesso']);
+    }
+
     public function resumo(array $parametros): void
     {
         $usuarioId = usuarioAtualId();

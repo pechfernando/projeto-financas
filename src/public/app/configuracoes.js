@@ -380,7 +380,7 @@ async function excluirForma(id) {
 function mostrarMensagem(elemento, texto) {
     elemento.textContent = texto;
     elemento.hidden = false;
-    if (elemento === mensagemSucessoCategoria || elemento === mensagemSucessoForma) {
+    if (elemento === mensagemSucessoCategoria || elemento === mensagemSucessoForma || elemento === mensagemSucessoConta || elemento === mensagemSucessoSaldoInicial) {
         setTimeout(() => { elemento.hidden = true; }, 3000);
     }
 }
@@ -391,5 +391,213 @@ function esconderMensagens(...elementos) {
     }
 }
 
+// ---------------------------------------------------------------------
+// Contas Patrimoniais
+// ---------------------------------------------------------------------
+
+const formConta = document.getElementById('form-conta');
+const campoContaId = document.getElementById('conta-id');
+const campoContaAtivo = document.getElementById('conta-ativo');
+const campoContaNome = document.getElementById('conta-nome');
+const campoContaTipo = document.getElementById('conta-tipo');
+const campoContaOrdem = document.getElementById('conta-ordem');
+const tituloFormConta = document.getElementById('titulo-form-conta');
+const botaoSalvarConta = document.getElementById('botao-salvar-conta');
+const botaoCancelarConta = document.getElementById('botao-cancelar-conta');
+const mensagemErroConta = document.getElementById('mensagem-erro-conta');
+const mensagemSucessoConta = document.getElementById('mensagem-sucesso-conta');
+const corpoTabelaContas = document.getElementById('corpo-tabela-contas');
+
+async function carregarContas() {
+    const resposta = await fetch(`${API_BASE}/contas-patrimonio?todas=1`);
+    const contas = await resposta.json();
+    renderizarTabelaContas(contas);
+}
+
+function renderizarTabelaContas(contas) {
+    if (contas.length === 0) {
+        corpoTabelaContas.innerHTML = '<tr><td colspan="5">Nenhuma conta cadastrada ainda.</td></tr>';
+        return;
+    }
+
+    corpoTabelaContas.innerHTML = '';
+
+    for (const conta of contas) {
+        const linha = document.createElement('tr');
+        const statusClasse = conta.ativo == 1 ? 'status-pago' : 'status-pendente';
+        const statusTexto = conta.ativo == 1 ? 'Ativa' : 'Inativa';
+        const rotuloAcaoAtivo = conta.ativo == 1 ? 'Desativar' : 'Reativar';
+
+        linha.innerHTML = `
+            <td data-rotulo="Nome">${conta.nome}</td>
+            <td data-rotulo="Tipo">${conta.tipo ?? '—'}</td>
+            <td data-rotulo="Ordem">${conta.ordem}</td>
+            <td data-rotulo="Status"><span class="${statusClasse}">${statusTexto}</span></td>
+            <td class="acoes-linha">
+                <button type="button" data-acao="editar" data-id="${conta.id}">Editar</button>
+                <button type="button" data-acao="alternar-ativo" data-id="${conta.id}" class="${conta.ativo == 1 ? 'apagar' : 'secundario'}">${rotuloAcaoAtivo}</button>
+                <button type="button" data-acao="excluir" data-id="${conta.id}" class="apagar">Excluir</button>
+            </td>
+        `;
+        corpoTabelaContas.appendChild(linha);
+    }
+}
+
+formConta.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    esconderMensagens(mensagemErroConta, mensagemSucessoConta);
+
+    const dados = {
+        nome: campoContaNome.value.trim(),
+        tipo: campoContaTipo.value.trim() || null,
+        ordem: Number(campoContaOrdem.value) || 0,
+        ativo: campoContaAtivo.value === '1',
+    };
+
+    const id = campoContaId.value;
+    const url = id ? `${API_BASE}/contas-patrimonio/${id}` : `${API_BASE}/contas-patrimonio`;
+    const metodo = id ? 'PUT' : 'POST';
+
+    const resposta = await fetch(url, {
+        method: metodo,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados),
+    });
+
+    const resultado = await resposta.json();
+
+    if (!resposta.ok) {
+        mostrarMensagem(mensagemErroConta, resultado.erro ?? 'Erro ao salvar conta');
+        return;
+    }
+
+    limparFormularioConta();
+    mostrarMensagem(mensagemSucessoConta, 'Conta salva com sucesso!');
+    await carregarContas();
+});
+
+corpoTabelaContas.addEventListener('click', async (evento) => {
+    const botao = evento.target.closest('button');
+    if (!botao) return;
+
+    const id = botao.dataset.id;
+
+    if (botao.dataset.acao === 'editar') {
+        await preencherFormularioContaParaEdicao(id);
+    }
+
+    if (botao.dataset.acao === 'alternar-ativo') {
+        await alternarAtivoConta(id);
+    }
+
+    if (botao.dataset.acao === 'excluir') {
+        await excluirConta(id);
+    }
+});
+
+async function preencherFormularioContaParaEdicao(id) {
+    const resposta = await fetch(`${API_BASE}/contas-patrimonio/${id}`);
+    const conta = await resposta.json();
+
+    campoContaId.value = conta.id;
+    campoContaAtivo.value = conta.ativo;
+    campoContaNome.value = conta.nome;
+    campoContaTipo.value = conta.tipo ?? '';
+    campoContaOrdem.value = conta.ordem;
+
+    tituloFormConta.textContent = 'Editar Conta Patrimonial';
+    botaoSalvarConta.textContent = 'Salvar Alterações';
+    botaoCancelarConta.hidden = false;
+    esconderMensagens(mensagemErroConta, mensagemSucessoConta);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function alternarAtivoConta(id) {
+    const resposta = await fetch(`${API_BASE}/contas-patrimonio/${id}`);
+    const conta = await resposta.json();
+
+    const novoStatusAtivo = conta.ativo == 1 ? 0 : 1;
+    const pergunta = novoStatusAtivo === 0
+        ? 'Desativar essa conta? Os históricos anteriores de saldos mensais continuam intactos, mas ela deixa de aparecer para novos lançamentos.'
+        : 'Reativar essa conta?';
+
+    if (!confirm(pergunta)) return;
+
+    await fetch(`${API_BASE}/contas-patrimonio/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            nome: conta.nome,
+            tipo: conta.tipo,
+            ordem: conta.ordem,
+            ativo: novoStatusAtivo === 1,
+        }),
+    });
+
+    await carregarContas();
+}
+
+botaoCancelarConta.addEventListener('click', limparFormularioConta);
+
+function limparFormularioConta() {
+    formConta.reset();
+    campoContaId.value = '';
+    campoContaAtivo.value = '1';
+    tituloFormConta.textContent = 'Nova Conta Patrimonial';
+    botaoSalvarConta.textContent = 'Adicionar Conta';
+    botaoCancelarConta.hidden = true;
+}
+
+async function excluirConta(id) {
+    if (!confirm('Excluir definitivamente essa conta? Essa ação não pode ser desfeita.\n\nSe houver saldos mensais lançados para ela, a exclusão será bloqueada.')) return;
+
+    const resposta = await fetch(`${API_BASE}/contas-patrimonio/${id}`, { method: 'DELETE' });
+    const resultado = await resposta.json();
+
+    if (!resposta.ok) {
+        alert(resultado.erro ?? 'Erro ao excluir conta.');
+        return;
+    }
+
+    await carregarContas();
+}
+
+// ---------------------------------------------------------------------
+// Geral / Saldo Inicial de Caixa
+// ---------------------------------------------------------------------
+
+const formSaldoInicial = document.getElementById('form-saldo-inicial');
+const campoSaldoInicial = document.getElementById('saldo-inicial-caixa');
+const mensagemSucessoSaldoInicial = document.getElementById('mensagem-sucesso-saldo-inicial');
+
+async function carregarSaldoInicial() {
+    const resposta = await fetch(`${API_BASE}/configuracoes/saldo-inicial`);
+    const dados = await resposta.json();
+    campoSaldoInicial.value = dados.saldo_inicial_caixa;
+}
+
+formSaldoInicial.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    
+    const dados = {
+        saldo_inicial_caixa: Number(campoSaldoInicial.value) || 0.00
+    };
+
+    const resposta = await fetch(`${API_BASE}/configuracoes/saldo-inicial`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados)
+    });
+
+    if (resposta.ok) {
+        mostrarMensagem(mensagemSucessoSaldoInicial, 'Saldo inicial de caixa salvo com sucesso!');
+        await carregarSaldoInicial();
+    } else {
+        alert('Erro ao salvar saldo inicial.');
+    }
+});
+
 carregarCategorias();
 carregarFormas();
+carregarContas();
+carregarSaldoInicial();

@@ -14,10 +14,8 @@
             <a href="/app/">Lançamentos</a>
             <a href="/app/relatorio.html">Relatório Mensal</a>
             <a href="/app/orcamento.html">Orçamento</a>
-            <a href="/app/fluxo-caixa.html">Fluxo de Caixa</a>
             <a href="/app/investimentos.html" class="ativo">Investimentos</a>
             <a href="/app/patrimonio.html">Patrimônio</a>
-            <a href="/app/rendimentos.html">Rendimentos</a>
             <a href="/app/configuracoes.html">Configurações</a>
         </nav>
     </header>
@@ -25,6 +23,7 @@
     <main>
         <div class="tabs" role="tablist">
             <button class="tab-btn ativo" data-tab="carteira" role="tab">Minha Carteira</button>
+            <button class="tab-btn" data-tab="rendimentos" role="tab">Rendimentos Recebidos</button>
             <button class="tab-btn" data-tab="registrar" role="tab">Registrar</button>
         </div>
 
@@ -70,6 +69,58 @@
                     </thead>
                     <tbody id="corpo-tabela-historico-movimentacoes">
                         <tr><td colspan="6">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+
+        <div id="tab-rendimentos" class="tab-painel">
+            <section class="card">
+                <div class="seletor-periodo">
+                    <div class="campo">
+                        <label for="rend-ano-filtro">Ano</label>
+                        <select id="rend-ano-filtro"></select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2 id="titulo-total-ano">Total Recebido no Ano</h2>
+                <p class="total-investido" id="total-ano">Carregando...</p>
+            </section>
+
+            <section class="card">
+                <h2>Total por Ativo</h2>
+                <div class="container-grafico">
+                    <canvas id="grafico-por-ativo"></canvas>
+                </div>
+                <p id="mensagem-sem-rendimentos" hidden>Nenhum rendimento registrado neste ano ainda.</p>
+                <table id="tabela-por-ativo">
+                    <thead>
+                        <tr>
+                            <th>Ativo</th>
+                            <th>Total no Ano</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela-por-ativo">
+                        <tr><td colspan="2">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="card">
+                <h2>Detalhe Mensal</h2>
+                <table id="tabela-detalhe">
+                    <thead>
+                        <tr>
+                            <th>Mês</th>
+                            <th>Ativo</th>
+                            <th>Valor</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela-detalhe">
+                        <tr><td colspan="4">Carregando...</td></tr>
                     </tbody>
                 </table>
             </section>
@@ -142,7 +193,7 @@
                 <p class="ajuda">
                     O valor registrado aqui entra automaticamente como <strong>Receita: Investimentos</strong>
                     no seu Relatório Mensal, Orçamento e Fluxo de Caixa. Para ver o histórico completo por
-                    ativo/mês, acesse a <a href="/app/rendimentos.html">tela de Rendimentos</a>.
+                    ativo/mês, acesse a aba <strong>Rendimentos Recebidos</strong> acima.
                 </p>
                 <form id="form-rendimento">
                     <div class="campo">

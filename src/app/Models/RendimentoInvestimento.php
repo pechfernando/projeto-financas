@@ -138,6 +138,32 @@ class RendimentoInvestimento
         return (string) $stmt->fetchColumn();
     }
 
+    public function apagar(int $id, int $usuarioId): bool
+    {
+        // Busca o lancamento_id antes de deletar o rendimento
+        $stmt = $this->pdo->prepare(
+            "SELECT lancamento_id FROM rendimentos_investimentos WHERE id = :id AND usuario_id = :usuario_id"
+        );
+        $stmt->execute(['id' => $id, 'usuario_id' => $usuarioId]);
+        $lancamentoId = $stmt->fetchColumn();
+
+        // Deleta o rendimento primeiro
+        $stmt = $this->pdo->prepare(
+            "DELETE FROM rendimentos_investimentos WHERE id = :id AND usuario_id = :usuario_id"
+        );
+        $sucesso = $stmt->execute(['id' => $id, 'usuario_id' => $usuarioId]);
+
+        // Se havia um lançamento de receita vinculado, deleta ele também
+        if ($sucesso && $lancamentoId) {
+            $stmt = $this->pdo->prepare(
+                "DELETE FROM lancamentos WHERE id = :id AND usuario_id = :usuario_id"
+            );
+            $stmt->execute(['id' => $lancamentoId, 'usuario_id' => $usuarioId]);
+        }
+
+        return $sucesso;
+    }
+
     private function ultimoDiaDoMes(int $mes, int $ano): string
     {
         return (new DateTime("{$ano}-{$mes}-01"))->format('Y-m-t');

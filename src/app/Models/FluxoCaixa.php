@@ -24,10 +24,27 @@ class FluxoCaixa
     }
 
     /**
+     * Obtém o saldo inicial de caixa configurado para o usuário.
+     */
+    public function obterSaldoInicial(int $usuarioId): float
+    {
+        $stmt = $this->pdo->prepare("SELECT saldo_inicial_caixa FROM usuarios WHERE id = :id");
+        $stmt->execute(['id' => $usuarioId]);
+        return (float) $stmt->fetchColumn();
+    }
+
+    /**
+     * Salva o saldo inicial de caixa para o usuário.
+     */
+    public function salvarSaldoInicial(int $usuarioId, float $valor): void
+    {
+        $stmt = $this->pdo->prepare("UPDATE usuarios SET saldo_inicial_caixa = :valor WHERE id = :id");
+        $stmt->execute(['valor' => $valor, 'id' => $usuarioId]);
+    }
+
+    /**
      * Saldo acumulado até o final do mês/ano informado — soma de tudo desde
-     * o primeiro lançamento registrado. Não depende de um "saldo inicial"
-     * cadastrado à parte (isso pode ser adicionado futuramente, na fase de
-     * migração dos dados antigos, se você quiser começar de um valor != 0).
+     * o primeiro lançamento registrado somado ao saldo inicial configurado.
      */
     public function saldoAcumulado(int $usuarioId, int $mes, int $ano): float
     {
@@ -39,7 +56,35 @@ class FluxoCaixa
                 AND l.data <= LAST_DAY(STR_TO_DATE(CONCAT(:ano, '-', :mes, '-01'), '%Y-%m-%d'))"
         );
         $stmt->execute(['usuario_id' => $usuarioId, 'mes' => $mes, 'ano' => $ano]);
-        return (float) $stmt->fetchColumn();
+        $saldoLancamentos = (float) $stmt->fetchColumn();
+
+        $saldoInicial = $this->obterSaldoInicial($usuarioId);
+
+        return $saldoLancamentos + $saldoInicial;
+    }
+
+    /**
+     * Retorna o detalhamento de receitas e despesas de um mês específico.
+     */
+    public function saldoDoMesDetelhado(int $usuarioId, int $mes, int $ano): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT 
+                COALESCE(SUM(CASE WHEN c.tipo = 'receita' THEN l.valor ELSE 0 END), 0) AS receitas,
+                COALESCE(SUM(CASE WHEN c.tipo != 'receita' THEN l.valor ELSE 0 END), 0) AS despesas
+             FROM lancamentos l
+             JOIN categorias c ON c.id = l.categoria_id
+             WHERE l.usuario_id = :usuario_id
+                AND MONTH(l.data) = :mes
+                AND YEAR(l.data) = :ano"
+        );
+        $stmt->execute(['usuario_id' => $usuarioId, 'mes' => $mes, 'ano' => $ano]);
+        $res = $stmt->fetch();
+        return [
+            'receitas' => (float) $res['receitas'],
+            'despesas' => (float) $res['despesas'],
+            'saldo' => (float) ($res['receitas'] - $res['despesas'])
+        ];
     }
 
     /**
@@ -60,10 +105,13 @@ class FluxoCaixa
         }
 
         foreach ($meses as $m) {
+            $detalhe = $this->saldoDoMesDetelhado($usuarioId, $m['mes'], $m['ano']);
             $serie[] = [
                 'mes' => $m['mes'],
                 'ano' => $m['ano'],
-                'saldo_do_mes' => $this->saldoDoMes($usuarioId, $m['mes'], $m['ano']),
+                'receitas' => $detalhe['receitas'],
+                'despesas' => $detalhe['despesas'],
+                'saldo_do_mes' => $detalhe['saldo'],
                 'saldo_acumulado' => $this->saldoAcumulado($usuarioId, $m['mes'], $m['ano']),
             ];
         }

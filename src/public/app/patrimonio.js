@@ -2,6 +2,7 @@ const API_BASE = '/api';
 
 const campoMes = document.getElementById('mes');
 const campoAno = document.getElementById('ano');
+const campoHorizonte = document.getElementById('horizonte');
 
 const valorSaldoReal = document.getElementById('valor-saldo-real');
 const valorSaldoCalculado = document.getElementById('valor-saldo-calculado');
@@ -18,6 +19,11 @@ const formConta = document.getElementById('form-conta');
 const campoContaNome = document.getElementById('conta-nome');
 const campoContaTipo = document.getElementById('conta-tipo');
 
+const textoFolego = document.getElementById('texto-folego');
+const cardFolego = document.getElementById('card-folego');
+const corpoTabelaFluxo = document.getElementById('corpo-tabela-fluxo');
+const canvasGraficoSaldoCaixa = document.getElementById('grafico-saldo-caixa');
+
 const NOMES_MESES = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
@@ -26,7 +32,8 @@ const NOMES_MESES_ABREV = [
     'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
 ];
 
-let grafico = null;
+let graficoPatrimonio = null;
+let graficoSaldoCaixa = null;
 
 function iniciarSeletores() {
     const hoje = new Date();
@@ -50,6 +57,7 @@ function iniciarSeletores() {
 
     campoMes.addEventListener('change', carregarTudo);
     campoAno.addEventListener('change', carregarTudo);
+    campoHorizonte.addEventListener('change', carregarTudo);
 }
 
 function formatarMoeda(valor) {
@@ -61,6 +69,7 @@ async function carregarTudo() {
     await Promise.all([
         carregarSaldosDoMes(),
         carregarEvolucao(),
+        carregarFluxoCaixa(),
     ]);
 }
 
@@ -96,6 +105,38 @@ function renderizarTabelaSaldos(contas) {
         `;
         corpoTabelaSaldos.appendChild(linha);
     }
+
+    // Auto-save on blur!
+    corpoTabelaSaldos.querySelectorAll('.input-saldo').forEach((input) => {
+        input.addEventListener('blur', salvarSaldosAutomaticamente);
+    });
+}
+
+async function salvarSaldosAutomaticamente() {
+    const inputs = corpoTabelaSaldos.querySelectorAll('.input-saldo');
+    const itens = Array.from(inputs).map((input) => ({
+        conta_id: input.dataset.contaId,
+        valor: input.value === '' ? 0 : input.value,
+    }));
+
+    await fetch(`${API_BASE}/saldos-mensais`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mes: campoMes.value, ano: campoAno.value, itens }),
+    });
+
+    mensagemSucessoSaldos.hidden = false;
+    setTimeout(() => { mensagemSucessoSaldos.hidden = true; }, 1500);
+
+    // Recarrega apenas reconciliação e o gráfico, mantendo o foco do input
+    const mes = campoMes.value;
+    const ano = campoAno.value;
+
+    const resposta = await fetch(`${API_BASE}/saldos-mensais?mes=${mes}&ano=${ano}`);
+    const dados = await resposta.json();
+    renderizarReconciliacao(dados.reconciliacao);
+    
+    await carregarEvolucao();
 }
 
 function renderizarReconciliacao(reconciliacao) {
@@ -106,9 +147,14 @@ function renderizarReconciliacao(reconciliacao) {
     valorDiferenca.innerHTML = `<strong>${formatarMoeda(diferenca)}</strong>`;
 
     valorDiferenca.classList.remove('saldo-positivo', 'saldo-negativo');
+    valorDiferenca.style.color = '';
+
     // Diferença perto de zero (centavos de arredondamento) não é tratada como alerta
-    if (Math.abs(diferenca) < 0.01) {
+    if (Math.abs(diferenca) < 0.1) {
         valorDiferenca.classList.add('saldo-positivo');
+    } else if (diferenca > 0) {
+        // Se a diferença for positiva (mais dinheiro real nas contas que o calculado), usa azul
+        valorDiferenca.style.color = '#3c8cf2';
     } else {
         valorDiferenca.classList.add('saldo-negativo');
     }
@@ -117,8 +163,9 @@ function renderizarReconciliacao(reconciliacao) {
 async function carregarEvolucao() {
     const mes = campoMes.value;
     const ano = campoAno.value;
+    const horizonte = campoHorizonte ? campoHorizonte.value : 6;
 
-    const resposta = await fetch(`${API_BASE}/evolucao-patrimonial?mes=${mes}&ano=${ano}&meses=6`);
+    const resposta = await fetch(`${API_BASE}/evolucao-patrimonial?mes=${mes}&ano=${ano}&meses=${horizonte}`);
     const dados = await resposta.json();
 
     renderizarGraficoEvolucao(dados.serie);
@@ -131,7 +178,7 @@ function renderizarGraficoEvolucao(serie) {
     if (meses_com_dado.length < 2) {
         canvasGrafico.hidden = true;
         mensagemSemEvolucao.hidden = false;
-        if (grafico) grafico.destroy();
+        if (graficoPatrimonio) graficoPatrimonio.destroy();
         return;
     }
 
@@ -141,11 +188,11 @@ function renderizarGraficoEvolucao(serie) {
     const rotulos = serie.map((item) => `${NOMES_MESES_ABREV[item.mes - 1]}/${String(item.ano).slice(-2)}`);
     const valores = serie.map((item) => item.total_patrimonio);
 
-    if (grafico) {
-        grafico.destroy();
+    if (graficoPatrimonio) {
+        graficoPatrimonio.destroy();
     }
 
-    grafico = new Chart(canvasGrafico, {
+    graficoPatrimonio = new Chart(canvasGrafico, {
         type: 'line',
         data: {
             labels: rotulos,
@@ -173,25 +220,105 @@ function renderizarGraficoEvolucao(serie) {
     });
 }
 
+async function carregarFluxoCaixa() {
+    const mes = campoMes.value;
+    const ano = campoAno.value;
+    const horizonte = campoHorizonte ? campoHorizonte.value : 6;
+
+    const resposta = await fetch(`${API_BASE}/fluxo-caixa?mes=${mes}&ano=${ano}&meses=${horizonte}`);
+    const dados = await resposta.json();
+
+    renderizarFolego(dados.folego_financeiro);
+    renderizarTabelaFluxo(dados.serie);
+    renderizarGraficoSaldoCaixa(dados.serie);
+}
+
+function renderizarFolego(folego) {
+    if (cardFolego) {
+        cardFolego.classList.remove('folego-alerta');
+    }
+
+    if (!folego) {
+        textoFolego.textContent = 'Ainda não há dados suficientes para calcular o fôlego financeiro.';
+        return;
+    }
+
+    if (folego.meses_de_folego === null) {
+        textoFolego.innerHTML = `Gasto médio mensal (últimos meses): <strong>${formatarMoeda(folego.media_gastos_mensais)}</strong>.
+            Não foi possível estimar o fôlego (saldo acumulado zerado ou negativo).`;
+        if (cardFolego) {
+            cardFolego.classList.add('folego-alerta');
+        }
+        return;
+    }
+
+    textoFolego.innerHTML = `No ritmo atual de gastos (média de <strong>${formatarMoeda(folego.media_gastos_mensais)}</strong>/mês),
+        seu saldo dura aproximadamente <strong>${folego.meses_de_folego} meses</strong> sem nenhuma entrada nova.`;
+
+    if (folego.meses_de_folego < 2 && cardFolego) {
+        cardFolego.classList.add('folego-alerta');
+    }
+}
+
+function renderizarTabelaFluxo(serie) {
+    if (!corpoTabelaFluxo) return;
+    corpoTabelaFluxo.innerHTML = '';
+    for (const item of serie) {
+        const classeSaldo = item.saldo_do_mes >= 0 ? 'saldo-positivo' : 'saldo-negativo';
+        const classeAcumulado = item.saldo_acumulado >= 0 ? 'saldo-positivo' : 'saldo-negativo';
+
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+            <td data-rotulo="Mês">${NOMES_MESES[item.mes - 1]}/${item.ano}</td>
+            <td data-rotulo="Receitas (+)" class="saldo-positivo">${formatarMoeda(item.receitas)}</td>
+            <td data-rotulo="Despesas (-)" class="saldo-negativo">${formatarMoeda(item.despesas)}</td>
+            <td data-rotulo="Saldo do Mês (=)" class="${classeSaldo}">${formatarMoeda(item.saldo_do_mes)}</td>
+            <td data-rotulo="Saldo Acumulado" class="${classeAcumulado}">${formatarMoeda(item.saldo_acumulado)}</td>
+        `;
+        corpoTabelaFluxo.appendChild(linha);
+    }
+}
+
+function renderizarGraficoSaldoCaixa(serie) {
+    if (typeof Chart === 'undefined' || !canvasGraficoSaldoCaixa) return;
+
+    const rotulos = serie.map((item) => `${NOMES_MESES_ABREV[item.mes - 1]}/${String(item.ano).slice(-2)}`);
+    const valores = serie.map((item) => item.saldo_acumulado);
+
+    if (graficoSaldoCaixa) {
+        graficoSaldoCaixa.destroy();
+    }
+
+    graficoSaldoCaixa = new Chart(canvasGraficoSaldoCaixa, {
+        type: 'line',
+        data: {
+            labels: rotulos,
+            datasets: [{
+                label: 'Saldo Acumulado',
+                data: valores,
+                borderColor: '#ea6524',
+                backgroundColor: 'rgba(234, 101, 36, 0.15)',
+                fill: true,
+                tension: 0.25,
+                pointRadius: 4,
+            }],
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: (valor) => formatarMoeda(valor),
+                    },
+                },
+            },
+        },
+    });
+}
+
 formSaldos.addEventListener('submit', async (evento) => {
     evento.preventDefault();
-
-    const inputs = corpoTabelaSaldos.querySelectorAll('.input-saldo');
-    const itens = Array.from(inputs).map((input) => ({
-        conta_id: input.dataset.contaId,
-        valor: input.value === '' ? 0 : input.value,
-    }));
-
-    await fetch(`${API_BASE}/saldos-mensais`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mes: campoMes.value, ano: campoAno.value, itens }),
-    });
-
-    mensagemSucessoSaldos.hidden = false;
-    setTimeout(() => { mensagemSucessoSaldos.hidden = true; }, 3000);
-
-    await carregarTudo();
+    await salvarSaldosAutomaticamente();
 });
 
 formConta.addEventListener('submit', async (evento) => {

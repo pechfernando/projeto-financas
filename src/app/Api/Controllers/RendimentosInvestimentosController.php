@@ -28,4 +28,21 @@ class RendimentosInvestimentosController
 
         jsonResponse(['id' => $id, 'mensagem' => 'Rendimento registrado com sucesso'], 201);
     }
+
+    public function apagar(array $parametros): void
+    {
+        $id = isset($parametros['id']) ? (int) $parametros['id'] : 0;
+
+        if ($id <= 0) {
+            jsonError('ID inválido', 400);
+        }
+
+        $sucesso = $this->model->apagar($id, usuarioAtualId());
+
+        if ($sucesso) {
+            jsonResponse(['mensagem' => 'Rendimento apagado com sucesso']);
+        } else {
+            jsonError('Não foi possível apagar o rendimento ou ele não pertence a você', 404);
+        }
+    }
 }

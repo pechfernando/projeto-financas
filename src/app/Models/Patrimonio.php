@@ -12,7 +12,7 @@ class Patrimonio
 
     public function listarContas(int $usuarioId, bool $apenasAtivas = true): array
     {
-        $sql = "SELECT id, nome, tipo, ordem
+        $sql = "SELECT id, nome, tipo, ordem, ativo
                 FROM contas_patrimonio WHERE usuario_id = :usuario_id";
 
         if ($apenasAtivas) {
@@ -24,6 +24,39 @@ class Patrimonio
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(['usuario_id' => $usuarioId]);
         return $stmt->fetchAll();
+    }
+
+    public function buscarContaPorId(int $id, int $usuarioId): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT id, nome, tipo, ordem, ativo FROM contas_patrimonio WHERE id = :id AND usuario_id = :usuario_id"
+        );
+        $stmt->execute(['id' => $id, 'usuario_id' => $usuarioId]);
+        return $stmt->fetch() ?: [];
+    }
+
+    public function atualizarConta(int $id, array $dados): bool
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE contas_patrimonio SET nome = :nome, tipo = :tipo, ordem = :ordem, ativo = :ativo
+             WHERE id = :id AND usuario_id = :usuario_id"
+        );
+        return $stmt->execute([
+            'nome' => $dados['nome'],
+            'tipo' => $dados['tipo'] ?? null,
+            'ordem' => (int) ($dados['ordem'] ?? 0),
+            'ativo' => $dados['ativo'] ? 1 : 0,
+            'id' => $id,
+            'usuario_id' => $dados['usuario_id'],
+        ]);
+    }
+
+    public function apagarConta(int $id, int $usuarioId): bool
+    {
+        $stmt = $this->pdo->prepare(
+            "DELETE FROM contas_patrimonio WHERE id = :id AND usuario_id = :usuario_id"
+        );
+        return $stmt->execute(['id' => $id, 'usuario_id' => $usuarioId]);
     }
 
     public function criarConta(array $dados): int

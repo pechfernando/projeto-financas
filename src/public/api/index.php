@@ -98,6 +98,8 @@ $router->post('/orcamento-mensal/copiar-mes-anterior', [$orcamentoController, 'c
 
 // Fluxo de caixa
 $router->get('/fluxo-caixa', [$fluxoCaixaController, 'resumo']);
+$router->get('/configuracoes/saldo-inicial', [$fluxoCaixaController, 'obterSaldoInicial']);
+$router->post('/configuracoes/saldo-inicial', [$fluxoCaixaController, 'salvarSaldoInicial']);
 
 // Investimentos
 $router->get('/ativos', [$ativosController, 'listar']);
@@ -110,10 +112,14 @@ $router->get('/carteira-investimentos', [$movimentacoesController, 'carteira']);
 
 $router->get('/rendimentos-investimentos', [$rendimentosController, 'listar']);
 $router->post('/rendimentos-investimentos', [$rendimentosController, 'criar']);
+$router->delete('/rendimentos-investimentos/{id}', [$rendimentosController, 'apagar']);
 
 // Patrimônio
 $router->get('/contas-patrimonio', [$patrimonioController, 'listarContas']);
+$router->get('/contas-patrimonio/{id}', [$patrimonioController, 'buscar']);
 $router->post('/contas-patrimonio', [$patrimonioController, 'criarConta']);
+$router->put('/contas-patrimonio/{id}', [$patrimonioController, 'atualizar']);
+$router->delete('/contas-patrimonio/{id}', [$patrimonioController, 'apagar']);
 $router->get('/saldos-mensais', [$patrimonioController, 'saldosDoMes']);
 $router->post('/saldos-mensais', [$patrimonioController, 'salvarSaldos']);
 $router->get('/evolucao-patrimonial', [$patrimonioController, 'evolucao']);

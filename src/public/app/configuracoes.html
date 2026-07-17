@@ -13,138 +13,222 @@
             <a href="/app/">Lançamentos</a>
             <a href="/app/relatorio.html">Relatório Mensal</a>
             <a href="/app/orcamento.html">Orçamento</a>
-            <a href="/app/fluxo-caixa.html">Fluxo de Caixa</a>
             <a href="/app/investimentos.html">Investimentos</a>
             <a href="/app/patrimonio.html">Patrimônio</a>
-            <a href="/app/rendimentos.html">Rendimentos</a>
             <a href="/app/configuracoes.html" class="ativo">Configurações</a>
         </nav>
     </header>
 
     <main>
-        <section class="card">
-            <h2 id="titulo-form-categoria">Nova Categoria</h2>
-            <p class="ajuda">
-                Categorias organizam seus lançamentos (ex: "Variável: Restaurante").
-                Desativar uma categoria não apaga os lançamentos que já usam ela —
-                só impede que seja escolhida em lançamentos novos.
-            </p>
-            <form id="form-categoria">
-                <input type="hidden" id="categoria-id">
-                <input type="hidden" id="categoria-ativo" value="1">
+        <div class="tabs" role="tablist">
+            <button class="tab-btn ativo" data-tab="categorias" role="tab">Categorias</button>
+            <button class="tab-btn" data-tab="formas" role="tab">Formas de Pagamento</button>
+            <button class="tab-btn" data-tab="contas" role="tab">Contas Patrimoniais</button>
+            <button class="tab-btn" data-tab="gerais" role="tab">Gerais</button>
+        </div>
 
-                <div class="campo">
-                    <label for="categoria-tipo">Tipo</label>
-                    <select id="categoria-tipo" required>
-                        <option value="fixa">Fixa (gasto fixo mensal)</option>
-                        <option value="variavel">Variável (gasto do dia a dia)</option>
-                        <option value="receita">Receita</option>
-                        <option value="dividas_parcelados">Dívidas e Parcelados</option>
-                    </select>
-                </div>
+        <div id="tab-categorias" class="tab-painel ativo">
+            <section class="card">
+                <h2 id="titulo-form-categoria">Nova Categoria</h2>
+                <p class="ajuda">
+                    Categorias organizam seus lançamentos (ex: "Variável: Restaurante").
+                    Desativar uma categoria não apaga os lançamentos que já usam ela —
+                    só impede que seja escolhida em lançamentos novos.
+                </p>
+                <form id="form-categoria">
+                    <input type="hidden" id="categoria-id">
+                    <input type="hidden" id="categoria-ativo" value="1">
 
-                <div class="campo">
-                    <label for="categoria-nome">Nome</label>
-                    <input type="text" id="categoria-nome" placeholder="Ex: Restaurante" required>
-                </div>
+                    <div class="campo">
+                        <label for="categoria-tipo">Tipo</label>
+                        <select id="categoria-tipo" required>
+                            <option value="fixa">Fixa (gasto fixo mensal)</option>
+                            <option value="variavel">Variável (gasto do dia a dia)</option>
+                            <option value="receita">Receita</option>
+                            <option value="dividas_parcelados">Dívidas e Parcelados</option>
+                        </select>
+                    </div>
 
-                <div class="campo">
-                    <label for="categoria-descricao">Descrição (opcional)</label>
-                    <input type="text" id="categoria-descricao" placeholder="Ex: Delivery e refeições fora de casa">
-                </div>
+                    <div class="campo">
+                        <label for="categoria-nome">Nome</label>
+                        <input type="text" id="categoria-nome" placeholder="Ex: Restaurante" required>
+                    </div>
 
-                <div class="campo campo-checkbox">
-                    <label for="categoria-reembolso">
-                        <input type="checkbox" id="categoria-reembolso">
-                        É reembolso/empréstimo recebido de terceiro (não conta como receita real)
-                    </label>
-                </div>
+                    <div class="campo">
+                        <label for="categoria-descricao">Descrição (opcional)</label>
+                        <input type="text" id="categoria-descricao" placeholder="Ex: Delivery e refeições fora de casa">
+                    </div>
 
-                <div class="acoes-formulario">
-                    <button type="submit" id="botao-salvar-categoria">Adicionar Categoria</button>
-                    <button type="button" id="botao-cancelar-categoria" class="secundario" hidden>Cancelar edição</button>
-                </div>
+                    <div class="campo campo-checkbox">
+                        <label for="categoria-reembolso">
+                            <input type="checkbox" id="categoria-reembolso">
+                            É reembolso/empréstimo recebido de terceiro (não conta como receita real)
+                        </label>
+                    </div>
 
-                <p id="mensagem-erro-categoria" class="mensagem-erro" hidden></p>
-                <p id="mensagem-sucesso-categoria" class="mensagem-sucesso" hidden>Categoria salva com sucesso!</p>
-            </form>
-        </section>
+                    <div class="acoes-formulario">
+                        <button type="submit" id="botao-salvar-categoria">Adicionar Categoria</button>
+                        <button type="button" id="botao-cancelar-categoria" class="secundario" hidden>Cancelar edição</button>
+                    </div>
 
-        <section class="card">
-            <h2>Categorias Cadastradas</h2>
-            <table id="tabela-categorias">
-                <thead>
-                    <tr>
-                        <th>Tipo</th>
-                        <th>Nome</th>
-                        <th>Descrição</th>
-                        <th>Status</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="corpo-tabela-categorias">
-                    <tr><td colspan="5">Carregando...</td></tr>
-                </tbody>
-            </table>
-        </section>
+                    <p id="mensagem-erro-categoria" class="mensagem-erro" hidden></p>
+                    <p id="mensagem-sucesso-categoria" class="mensagem-sucesso" hidden>Categoria salva com sucesso!</p>
+                </form>
+            </section>
 
-        <section class="card">
-            <h2 id="titulo-form-forma">Nova Forma de Pagamento</h2>
-            <p class="ajuda">
-                Desativar uma forma de pagamento não apaga os lançamentos que já
-                usam ela — só impede que seja escolhida em lançamentos novos.
-            </p>
-            <form id="form-forma">
-                <input type="hidden" id="forma-id">
-                <input type="hidden" id="forma-ativo" value="1">
+            <section class="card">
+                <h2>Categorias Cadastradas</h2>
+                <table id="tabela-categorias">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Nome</th>
+                            <th>Descrição</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela-categorias">
+                        <tr><td colspan="5">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
 
-                <div class="campo">
-                    <label for="forma-nome">Nome</label>
-                    <input type="text" id="forma-nome" placeholder="Ex: Nubank, Dinheiro, Pix" required>
-                </div>
+        <div id="tab-formas" class="tab-painel">
+            <section class="card">
+                <h2 id="titulo-form-forma">Nova Forma de Pagamento</h2>
+                <p class="ajuda">
+                    Desativar uma forma de pagamento não apaga os lançamentos que já
+                    usam ela — só impede que seja escolhida em lançamentos novos.
+                </p>
+                <form id="form-forma">
+                    <input type="hidden" id="forma-id">
+                    <input type="hidden" id="forma-ativo" value="1">
 
-                <div class="campo">
-                    <label for="forma-tipo">Tipo</label>
-                    <select id="forma-tipo" required>
-                        <option value="debito_dinheiro_pix">Débito / Dinheiro / Pix</option>
-                        <option value="cartao_credito">Cartão de Crédito</option>
-                    </select>
-                </div>
+                    <div class="campo">
+                        <label for="forma-nome">Nome</label>
+                        <input type="text" id="forma-nome" placeholder="Ex: Nubank, Dinheiro, Pix" required>
+                    </div>
 
-                <div class="campo" id="campo-limite-credito" hidden>
-                    <label for="forma-limite">Limite de Crédito (opcional)</label>
-                    <input type="number" step="0.01" id="forma-limite" placeholder="0,00">
-                </div>
+                    <div class="campo">
+                        <label for="forma-tipo">Tipo</label>
+                        <select id="forma-tipo" required>
+                            <option value="debito_dinheiro_pix">Débito / Dinheiro / Pix</option>
+                            <option value="cartao_credito">Cartão de Crédito</option>
+                        </select>
+                    </div>
 
-                <div class="acoes-formulario">
-                    <button type="submit" id="botao-salvar-forma">Adicionar Forma de Pagamento</button>
-                    <button type="button" id="botao-cancelar-forma" class="secundario" hidden>Cancelar edição</button>
-                </div>
+                    <div class="campo" id="campo-limite-credito" hidden>
+                        <label for="forma-limite">Limite de Crédito (opcional)</label>
+                        <input type="number" step="0.01" id="forma-limite" placeholder="0,00">
+                    </div>
 
-                <p id="mensagem-erro-forma" class="mensagem-erro" hidden></p>
-                <p id="mensagem-sucesso-forma" class="mensagem-sucesso" hidden>Forma de pagamento salva com sucesso!</p>
-            </form>
-        </section>
+                    <div class="acoes-formulario">
+                        <button type="submit" id="botao-salvar-forma">Adicionar Forma de Pagamento</button>
+                        <button type="button" id="botao-cancelar-forma" class="secundario" hidden>Cancelar edição</button>
+                    </div>
 
-        <section class="card">
-            <h2>Formas de Pagamento Cadastradas</h2>
-            <table id="tabela-formas">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Tipo</th>
-                        <th>Limite</th>
-                        <th>Status</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="corpo-tabela-formas">
-                    <tr><td colspan="5">Carregando...</td></tr>
-                </tbody>
-            </table>
-        </section>
+                    <p id="mensagem-erro-forma" class="mensagem-erro" hidden></p>
+                    <p id="mensagem-sucesso-forma" class="mensagem-sucesso" hidden>Forma de pagamento salva com sucesso!</p>
+                </form>
+            </section>
+
+            <section class="card">
+                <h2>Formas de Pagamento Cadastradas</h2>
+                <table id="tabela-formas">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Tipo</th>
+                            <th>Limite</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela-formas">
+                        <tr><td colspan="5">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+
+        <div id="tab-contas" class="tab-painel">
+            <section class="card">
+                <h2 id="titulo-form-conta">Nova Conta Patrimonial</h2>
+                <p class="ajuda">
+                    Contas de patrimônio organizam onde seu dinheiro físico/investido fica.
+                    Desativar uma conta preserva os históricos anteriores de saldos mensais, mas impede novos lançamentos.
+                </p>
+                <form id="form-conta">
+                    <input type="hidden" id="conta-id">
+                    <input type="hidden" id="conta-ativo" value="1">
+
+                    <div class="campo">
+                        <label for="conta-nome">Nome</label>
+                        <input type="text" id="conta-nome" placeholder="Ex: Itaú, Inter, Dinheiro" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="conta-tipo">Tipo</label>
+                        <input type="text" id="conta-tipo" placeholder="Ex: conta corrente, investimento, dinheiro físico">
+                    </div>
+
+                    <div class="campo">
+                        <label for="conta-ordem">Ordem de Prioridade</label>
+                        <input type="number" id="conta-ordem" placeholder="Ex: 0" value="0">
+                    </div>
+
+                    <div class="acoes-formulario">
+                        <button type="submit" id="botao-salvar-conta">Adicionar Conta</button>
+                        <button type="button" id="botao-cancelar-conta" class="secundario" hidden>Cancelar edição</button>
+                    </div>
+
+                    <p id="mensagem-erro-conta" class="mensagem-erro" hidden></p>
+                    <p id="mensagem-sucesso-conta" class="mensagem-sucesso" hidden>Conta salva com sucesso!</p>
+                </form>
+            </section>
+
+            <section class="card">
+                <h2>Contas Patrimoniais Cadastradas</h2>
+                <table id="tabela-contas">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Tipo</th>
+                            <th>Ordem</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela-contas">
+                        <tr><td colspan="5">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+
+        <div id="tab-gerais" class="tab-painel">
+            <section class="card">
+                <h2>Saldo Inicial de Caixa</h2>
+                <p class="ajuda">
+                    Configure aqui o seu saldo de caixa inicial. Este valor servirá como saldo base histórico para o seu Fluxo de Caixa Acumulado e Reconciliação de Patrimônio.
+                </p>
+                <form id="form-saldo-inicial">
+                    <div class="campo">
+                        <label for="saldo-inicial-caixa">Saldo Inicial de Caixa (R$)</label>
+                        <input type="number" step="0.01" id="saldo-inicial-caixa" placeholder="0,00" required>
+                    </div>
+                    <div class="acoes-formulario">
+                        <button type="submit" id="botao-salvar-saldo-inicial">Salvar Saldo Inicial</button>
+                    </div>
+                    <p id="mensagem-sucesso-saldo-inicial" class="mensagem-sucesso" hidden>Saldo inicial de caixa salvo com sucesso!</p>
+                </form>
+            </section>
+        </div>
     </main>
 
+    <script src="tabs.js"></script>
     <script src="configuracoes.js"></script>
 </body>
 </html>
