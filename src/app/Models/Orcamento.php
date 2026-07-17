@@ -60,10 +60,10 @@ class Orcamento
 
         $stmt = $this->pdo->prepare(
             "INSERT INTO orcamento_mensal (usuario_id, categoria_id, mes, ano, valor_previsto)
-             SELECT usuario_id, categoria_id, :mes, :ano, valor_previsto
-             FROM orcamento_mensal
-             WHERE usuario_id = :usuario_id AND mes = :mes_anterior AND ano = :ano_anterior
-             ON DUPLICATE KEY UPDATE valor_previsto = valor_previsto"
+              SELECT source.usuario_id, source.categoria_id, :mes, :ano, source.valor_previsto
+              FROM orcamento_mensal AS source
+              WHERE source.usuario_id = :usuario_id AND source.mes = :mes_anterior AND source.ano = :ano_anterior
+              ON DUPLICATE KEY UPDATE valor_previsto = IF(orcamento_mensal.valor_previsto = 0, VALUES(valor_previsto), orcamento_mensal.valor_previsto)"
         );
         $stmt->execute([
             'usuario_id' => $usuarioId,

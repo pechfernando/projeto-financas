@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>plano. — Orçamento</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
     <header>
@@ -38,12 +38,14 @@
             </button>
         </section>
 
+        <!-- Painel de resumo do Orçamento Geral -->
+        <div class="totais-tipo" id="resumo-orcamento-geral"></div>
+
         <section class="card">
             <h2>Valores Previstos por Categoria</h2>
             <p class="ajuda">
                 Preencha quanto você planeja gastar/receber em cada categoria neste mês.
-                O valor "Realizado" é atualizado automaticamente conforme você lança
-                gastos e receitas.
+                As alterações são salvas automaticamente quando você digita e clica fora do campo.
             </p>
             <form id="form-orcamento">
                 <table id="tabela-orcamento">
@@ -52,20 +54,18 @@
                             <th>Categoria</th>
                             <th>Previsto</th>
                             <th>Realizado</th>
+                            <th>Disponível</th>
                         </tr>
                     </thead>
                     <tbody id="corpo-tabela-orcamento">
-                        <tr><td colspan="3">Carregando...</td></tr>
+                        <tr><td colspan="4">Carregando...</td></tr>
                     </tbody>
                 </table>
-                <div class="acoes-formulario">
-                    <button type="submit">Salvar Orçamento</button>
-                </div>
-                <p id="mensagem-sucesso" class="mensagem-sucesso" hidden>Orçamento salvo com sucesso!</p>
+                <p id="mensagem-sucesso" class="mensagem-sucesso" hidden>Alterações salvas!</p>
             </form>
         </section>
     </main>
 
-    <script src="orcamento.js"></script>
+    <script src="orcamento.js?v=2"></script>
 </body>
 </html>

@@ -288,7 +288,62 @@ th {
     font-variant-numeric: tabular-nums;
 }
 
+/* =====================================================================
+   TABS — Sistema de abas reutilizável
+   ===================================================================== */
+
+.tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--cinza-borda);
+    margin-bottom: 24px;
+    padding: 0 4px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    border-radius: 6px 6px 0 0;
+}
+
+.tab-btn:hover {
+    color: var(--laranja);
+    background: rgba(234, 101, 36, 0.06);
+}
+
+.tab-btn.ativo {
+    color: var(--laranja);
+    border-bottom-color: var(--laranja);
+    background: none;
+}
+
+.tab-painel {
+    display: none;
+}
+
+.tab-painel.ativo {
+    display: block;
+}
+
 @media (max-width: 600px) {
+    .tabs {
+        gap: 0;
+        overflow-x: auto;
+        padding: 0;
+    }
+    .tab-btn {
+        padding: 10px 14px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
     table, thead, tbody, th, td, tr {
         display: block;
     }
@@ -312,3 +367,45 @@ th {
         padding: 8px 0;
     }
 }
+
+/* =====================================================================
+   PROGRESSO — Barras de progresso do orçamento
+   ===================================================================== */
+.progresso-container {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    height: 6px;
+    margin-top: 6px;
+    overflow: hidden;
+}
+
+.progresso-barra {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.progresso-barra.verde {
+    background-color: var(--verde);
+}
+
+.progresso-barra.amarelo {
+    background-color: #f2a13c;
+}
+
+.progresso-barra.vermelho {
+    background-color: var(--vermelho);
+}
+
+.progresso-info {
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.col-disponivel {
+    font-weight: 600;
+}
+
+

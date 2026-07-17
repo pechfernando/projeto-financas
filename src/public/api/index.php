@@ -79,12 +79,14 @@ $router->get('/categorias', [$categoriasController, 'listar']);
 $router->get('/categorias/{id}', [$categoriasController, 'buscar']);
 $router->post('/categorias', [$categoriasController, 'criar']);
 $router->put('/categorias/{id}', [$categoriasController, 'atualizar']);
+$router->delete('/categorias/{id}', [$categoriasController, 'apagar']);
 
 // Formas de pagamento
 $router->get('/formas-pagamento', [$formasPagamentoController, 'listar']);
 $router->get('/formas-pagamento/{id}', [$formasPagamentoController, 'buscar']);
 $router->post('/formas-pagamento', [$formasPagamentoController, 'criar']);
 $router->put('/formas-pagamento/{id}', [$formasPagamentoController, 'atualizar']);
+$router->delete('/formas-pagamento/{id}', [$formasPagamentoController, 'apagar']);
 
 // Relatório mensal
 $router->get('/relatorio-mensal', [$relatorioMensalController, 'resumo']);

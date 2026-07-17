@@ -22,78 +22,89 @@
     </header>
 
     <main>
-        <section class="card">
-            <h2 id="titulo-formulario">Novo Lançamento</h2>
-            <form id="form-lancamento">
-                <input type="hidden" id="lancamento-id">
+        <div class="tabs" role="tablist">
+            <button class="tab-btn ativo" data-tab="extrato" role="tab">Extrato</button>
+            <button class="tab-btn" data-tab="novo-lancamento" role="tab">Novo Lançamento</button>
+        </div>
 
-                <div class="campo">
-                    <label for="valor">Quanto?</label>
-                    <input type="number" step="0.01" id="valor" required>
-                </div>
+        <div id="tab-extrato" class="tab-painel ativo">
+            <section class="card">
+                <h2>Lançamentos</h2>
+                <table id="tabela-lancamentos">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Categoria</th>
+                            <th>Descrição</th>
+                            <th>Forma de Pagamento</th>
+                            <th>Status</th>
+                            <th>Valor</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela-lancamentos">
+                        <tr><td colspan="7">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
 
-                <div class="campo">
-                    <label for="data">Quando?</label>
-                    <input type="date" id="data" required>
-                </div>
+        <div id="tab-novo-lancamento" class="tab-painel">
+            <section class="card">
+                <h2 id="titulo-formulario">Novo Lançamento</h2>
+                <form id="form-lancamento">
+                    <input type="hidden" id="lancamento-id">
 
-                <div class="campo">
-                    <label for="categoria">Classificação</label>
-                    <select id="categoria" required>
-                        <option value="">Escolher...</option>
-                    </select>
-                </div>
+                    <div class="campo">
+                        <label for="valor">Quanto?</label>
+                        <input type="number" step="0.01" id="valor" required>
+                    </div>
 
-                <div class="campo">
-                    <label for="forma-pagamento">Forma de Pagamento</label>
-                    <select id="forma-pagamento" required>
-                        <option value="">Escolher...</option>
-                    </select>
-                </div>
+                    <div class="campo">
+                        <label for="data">Quando?</label>
+                        <input type="date" id="data" required>
+                    </div>
 
-                <div class="campo">
-                    <label for="descricao">Descrição Complementar</label>
-                    <input type="text" id="descricao">
-                </div>
+                    <div class="campo">
+                        <label for="categoria">Classificação</label>
+                        <select id="categoria" required>
+                            <option value="">Escolher...</option>
+                        </select>
+                    </div>
 
-                <div class="campo">
-                    <label for="status-pagamento">Status</label>
-                    <select id="status-pagamento">
-                        <option value="pago">Pago</option>
-                        <option value="pendente">Pendente</option>
-                    </select>
-                </div>
+                    <div class="campo">
+                        <label for="forma-pagamento">Forma de Pagamento</label>
+                        <select id="forma-pagamento" required>
+                            <option value="">Escolher...</option>
+                        </select>
+                    </div>
 
-                <div class="acoes-formulario">
-                    <button type="submit" id="botao-salvar">Salvar</button>
-                    <button type="button" id="botao-cancelar" class="secundario" hidden>Cancelar edição</button>
-                </div>
+                    <div class="campo">
+                        <label for="descricao">Descrição Complementar</label>
+                        <input type="text" id="descricao">
+                    </div>
 
-                <p id="mensagem-erro" class="mensagem-erro" hidden></p>
-            </form>
-        </section>
+                    <div class="campo">
+                        <label for="status-pagamento">Status</label>
+                        <select id="status-pagamento">
+                            <option value="pago">Pago</option>
+                            <option value="pendente">Pendente</option>
+                        </select>
+                    </div>
 
-        <section class="card">
-            <h2>Lançamentos</h2>
-            <table id="tabela-lancamentos">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Categoria</th>
-                        <th>Descrição</th>
-                        <th>Forma de Pagamento</th>
-                        <th>Status</th>
-                        <th>Valor</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="corpo-tabela-lancamentos">
-                    <tr><td colspan="7">Carregando...</td></tr>
-                </tbody>
-            </table>
-        </section>
+                    <div class="acoes-formulario">
+                        <button type="submit" id="botao-salvar">Salvar</button>
+                        <button type="button" id="botao-cancelar" class="secundario" hidden>Cancelar edição</button>
+                    </div>
+
+                    <p id="mensagem-erro" class="mensagem-erro" hidden></p>
+                </form>
+            </section>
+        </div>
     </main>
 
+
+    <script src="tabs.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

@@ -77,6 +77,28 @@ class FormaPagamento
     }
 
     /**
+     * Tenta apagar definitivamente a forma de pagamento.
+     * Retorna true em caso de sucesso, ou uma string com a mensagem de
+     * erro se existirem lançamentos vinculados a ela.
+     */
+    public function apagar(int $id, int $usuarioId): true|string
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT COUNT(*) FROM lancamentos WHERE forma_pagamento_id = :id"
+        );
+        $stmt->execute(['id' => $id]);
+        if ((int) $stmt->fetchColumn() > 0) {
+            return 'Não é possível excluir: existem lançamentos vinculados a essa forma de pagamento. Desative-a em vez de excluir.';
+        }
+
+        $stmt = $this->pdo->prepare(
+            "DELETE FROM formas_pagamento WHERE id = :id AND usuario_id = :usuario_id"
+        );
+        $stmt->execute(['id' => $id, 'usuario_id' => $usuarioId]);
+        return true;
+    }
+
+    /**
      * Retorna o id de uma forma de pagamento "débito/dinheiro/pix" do
      * usuário para usar como padrão em lançamentos gerados automaticamente
      * (como o lançamento de receita criado a partir de um rendimento).

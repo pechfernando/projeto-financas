@@ -70,6 +70,23 @@ class CategoriasController
         jsonResponse(['mensagem' => 'Categoria atualizada com sucesso']);
     }
 
+    public function apagar(array $parametros): void
+    {
+        $usuarioId = usuarioAtualId();
+        $id = (int) $parametros['id'];
+
+        if (!$this->model->buscarPorId($id, $usuarioId)) {
+            jsonError('Categoria não encontrada', 404);
+        }
+
+        $resultado = $this->model->apagar($id, $usuarioId);
+
+        if ($resultado !== true) {
+            jsonError($resultado, 409);
+        }
+
+        jsonResponse(['mensagem' => 'Categoria excluída com sucesso']);
+    }
     /**
      * Validação básica dos dados recebidos. Devolve uma mensagem de erro
      * (string) se algo estiver errado, ou null se estiver tudo certo.

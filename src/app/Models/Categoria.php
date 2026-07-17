@@ -80,6 +80,38 @@ class Categoria
     }
 
     /**
+     * Tenta apagar definitivamente a categoria.
+     * Retorna true em caso de sucesso, ou uma string com a mensagem de
+     * erro se existirem lançamentos ou orçamentos vinculados a ela.
+     */
+    public function apagar(int $id, int $usuarioId): true|string
+    {
+        // Verifica vínculos em lançamentos
+        $stmt = $this->pdo->prepare(
+            "SELECT COUNT(*) FROM lancamentos WHERE categoria_id = :id"
+        );
+        $stmt->execute(['id' => $id]);
+        if ((int) $stmt->fetchColumn() > 0) {
+            return 'Não é possível excluir: existem lançamentos vinculados a essa categoria. Desative-a em vez de excluir.';
+        }
+
+        // Verifica vínculos em orçamentos
+        $stmt = $this->pdo->prepare(
+            "SELECT COUNT(*) FROM orcamento_mensal WHERE categoria_id = :id"
+        );
+        $stmt->execute(['id' => $id]);
+        if ((int) $stmt->fetchColumn() > 0) {
+            return 'Não é possível excluir: existem registros de orçamento vinculados a essa categoria. Desative-a em vez de excluir.';
+        }
+
+        $stmt = $this->pdo->prepare(
+            "DELETE FROM categorias WHERE id = :id AND usuario_id = :usuario_id"
+        );
+        $stmt->execute(['id' => $id, 'usuario_id' => $usuarioId]);
+        return true;
+    }
+
+    /**
      * Retorna o id da categoria "Investimentos" (tipo receita) do usuário,
      * criando-a automaticamente na primeira vez — é nela que os rendimentos
      * de investimentos caem, para aparecerem no Relatório Mensal como receita.

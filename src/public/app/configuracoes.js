@@ -53,6 +53,7 @@ function renderizarTabelaCategorias(categorias) {
             <td class="acoes-linha">
                 <button type="button" data-acao="editar" data-id="${categoria.id}">Editar</button>
                 <button type="button" data-acao="alternar-ativo" data-id="${categoria.id}" class="${categoria.ativo == 1 ? 'apagar' : 'secundario'}">${rotuloAcaoAtivo}</button>
+                <button type="button" data-acao="excluir" data-id="${categoria.id}" class="apagar">Excluir</button>
             </td>
         `;
         corpoTabelaCategorias.appendChild(linha);
@@ -105,6 +106,10 @@ corpoTabelaCategorias.addEventListener('click', async (evento) => {
 
     if (botao.dataset.acao === 'alternar-ativo') {
         await alternarAtivoCategoria(id);
+    }
+
+    if (botao.dataset.acao === 'excluir') {
+        await excluirCategoria(id);
     }
 });
 
@@ -161,6 +166,20 @@ function limparFormularioCategoria() {
     tituloFormCategoria.textContent = 'Nova Categoria';
     botaoSalvarCategoria.textContent = 'Adicionar Categoria';
     botaoCancelarCategoria.hidden = true;
+}
+
+async function excluirCategoria(id) {
+    if (!confirm('Excluir definitivamente essa categoria? Essa ação não pode ser desfeita.\n\nSe houver lançamentos vinculados, a exclusão será bloqueada.')) return;
+
+    const resposta = await fetch(`${API_BASE}/categorias/${id}`, { method: 'DELETE' });
+    const resultado = await resposta.json();
+
+    if (!resposta.ok) {
+        alert(resultado.erro ?? 'Erro ao excluir categoria.');
+        return;
+    }
+
+    await carregarCategorias();
 }
 
 // ---------------------------------------------------------------------
@@ -224,6 +243,7 @@ function renderizarTabelaFormas(formas) {
             <td class="acoes-linha">
                 <button type="button" data-acao="editar" data-id="${forma.id}">Editar</button>
                 <button type="button" data-acao="alternar-ativo" data-id="${forma.id}" class="${forma.ativo == 1 ? 'apagar' : 'secundario'}">${rotuloAcaoAtivo}</button>
+                <button type="button" data-acao="excluir" data-id="${forma.id}" class="apagar">Excluir</button>
             </td>
         `;
         corpoTabelaFormas.appendChild(linha);
@@ -277,6 +297,10 @@ corpoTabelaFormas.addEventListener('click', async (evento) => {
 
     if (botao.dataset.acao === 'alternar-ativo') {
         await alternarAtivoForma(id);
+    }
+
+    if (botao.dataset.acao === 'excluir') {
+        await excluirForma(id);
     }
 });
 
@@ -333,6 +357,20 @@ function limparFormularioForma() {
     botaoSalvarForma.textContent = 'Adicionar Forma de Pagamento';
     botaoCancelarForma.hidden = true;
     atualizarVisibilidadeLimite();
+}
+
+async function excluirForma(id) {
+    if (!confirm('Excluir definitivamente essa forma de pagamento? Essa ação não pode ser desfeita.\n\nSe houver lançamentos vinculados, a exclusão será bloqueada.')) return;
+
+    const resposta = await fetch(`${API_BASE}/formas-pagamento/${id}`, { method: 'DELETE' });
+    const resultado = await resposta.json();
+
+    if (!resposta.ok) {
+        alert(resultado.erro ?? 'Erro ao excluir forma de pagamento.');
+        return;
+    }
+
+    await carregarFormas();
 }
 
 // ---------------------------------------------------------------------

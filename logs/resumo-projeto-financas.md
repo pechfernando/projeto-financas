@@ -148,6 +148,9 @@ projeto-financas/
     │       ├── orcamento.html + orcamento.js
     │       ├── fluxo-caixa.html + fluxo-caixa.js
     │       ├── investimentos.html + investimentos.js
+    │       ├── patrimonio.html + patrimonio.js
+    │       ├── rendimentos.html + rendimentos.js
+    │       ├── configuracoes.html + configuracoes.js
     │       └── style.css              (compartilhado por todas as telas)
     └── app/
         ├── Config/database.php        (conexão PDO via variáveis de ambiente)
@@ -164,7 +167,8 @@ projeto-financas/
         │       ├── FluxoCaixaController.php
         │       ├── AtivosController.php
         │       ├── MovimentacoesInvestimentosController.php
-        │       └── RendimentosInvestimentosController.php
+        │       ├── RendimentosInvestimentosController.php
+        │       └── PatrimonioController.php
         └── Models/
             ├── Lancamento.php
             ├── Categoria.php          (tem obterOuCriarPorNome — find-or-create)
@@ -174,7 +178,8 @@ projeto-financas/
             ├── FluxoCaixa.php
             ├── Ativo.php
             ├── MovimentacaoInvestimento.php
-            └── RendimentoInvestimento.php
+            ├── RendimentoInvestimento.php
+            └── Patrimonio.php
 ```
 
 ## 7. O que já foi construído (por fase)
@@ -209,71 +214,38 @@ bug de encoding UTF-8 e versão do Chart.js).
   (já explicada: preencher previsto no início do mês, usar botão de copiar,
   Realizado é só leitura, salvar).
 
-### 🔶 Fase 4 — Investimentos (em andamento, quase concluída)
-- `/app/investimentos.html`: Minha Carteira (tabela consolidada por ativo:
-  quantidade, preço médio, valor investido — calculado automaticamente),
-  gráfico de distribuição por tipo de ativo, cadastro de ativo, registro de
-  movimentação (compra), registro de rendimento. API: `GET/POST /api/ativos`,
-  `GET/POST /api/movimentacoes-investimentos`, `DELETE
-  /api/movimentacoes-investimentos/{id}`, `GET /api/carteira-investimentos`,
-  `GET/POST /api/rendimentos-investimentos`.
-- **Testado e funcionando no geral**, mas usuário pediu 2 melhorias que estavam
-  sendo implementadas quando o chat ficou grande demais:
-  1. **Campo de "Valor da Cota" no formulário de movimentação** — já
-     adicionado no HTML (`mov-preco-unitario`), com texto de ajuda explicando
-     que o Valor Total é calculado automaticamente (cotas × valor da cota) mas
-     pode ser ajustado manualmente por causa de taxas. **FALTA**: atualizar o
-     `investimentos.js` para implementar o cálculo automático bidirecional
-     (JS ainda não foi editado com essa lógica — só o HTML foi alterado).
-  2. **Rendimentos não apareciam em lugar nenhum e não contavam no fluxo de
-     caixa.** Decisão tomada: rendimentos registrados devem gerar
-     automaticamente um lançamento na categoria "Receita: Rendimentos de
-     Investimentos", contando no Saldo do Mês/Fluxo de Caixa. **Isso já foi
-     implementado no backend** (Categoria::obterOuCriarPorNome,
-     FormaPagamento::obterOuCriarPadrao, RendimentoInvestimento com
-     lancamento_id vinculado, RendimentosInvestimentosController orquestrando
-     tudo) — inclusive corrigimos um bug onde o `index.php` não estava
-     passando todas as dependências pro construtor do
-     `RendimentosInvestimentosController` (já corrigido). **FALTA**: 1) testar
-     esse fluxo ponta a ponta; 2) adicionar uma tabela de histórico de
-     "Rendimentos Recebidos" na tela de investimentos (o usuário perguntou
-     "onde vejo isso?" — hoje só existe o formulário de cadastro, sem nenhuma
-     listagem visível na tela).
+### ✅ Fase 4 — Investimentos
+- `/app/investimentos.html`: Minha Carteira (tabela consolidada por ativo com quantidade, preço médio, valor investido calculados automaticamente), gráfico de distribuição por tipo, cadastro de ativo e histórico de compras.
+- **Melhorias adicionadas**:
+  - Campo "Preço Unitário" obrigatório no formulário e seção de histórico de compras.
+  - Sincronização automática de rendimentos gerando um lançamento do tipo receita na categoria "Investimentos" (com a forma padrão "Débito/Dinheiro/Pix").
+  - Tela dedicada `/app/rendimentos.html` mostrando total recebido no ano, gráfico de barras/pizza por ativo e detalhamento mensal.
 
-### ⬜ Fase 5 — Patrimônio (não iniciada)
-Cadastro de contas/investimentos (`contas_patrimonio`) e saldos mensais
-manuais (`saldos_mensais`) — tabelas já existem no schema, falta
-Model/Controller/rotas/frontend. Deve incluir: reconciliação (comparar saldo
-calculado dos lançamentos vs saldo real informado manualmente) e gráfico de
-evolução patrimonial.
+### ✅ Fase 5 — Patrimônio
+- `/app/patrimonio.html`: Tela de patrimônio com suporte a cadastro de contas e inserção de saldos mensais reais.
+- **Reconciliação**: Compara o saldo real manual de cada conta com o saldo calculado acumulado vindo do fluxo de caixa e exibe a diferença.
+- **Gráficos**: Linha de evolução patrimonial histórica.
+- **Backend**: Implementado o model `Patrimonio.php`, controller `PatrimonioController.php` e a tabela `saldos_mensais`.
+
+### ✅ Menu de Configurações
+- `/app/configuracoes.html` + `configuracoes.js`: Nova página adicionada para gerenciamento completo das opções do sistema.
+- **Categorias**: Cadastro, edição de nome/descrição/tipo, definição se é reembolso, e controle de status de ativação (categorias inativas continuam no banco para lançamentos históricos, mas somem do formulário).
+- **Formas de Pagamento**: Cadastro, edição de tipo, definição de limite de cartão de crédito e desativação/reativação.
 
 ### ⬜ Fase 6 — PWA / Mobile (não iniciada)
-Ajustes de responsividade (já está responsivo em CSS básico) e transformar em
-PWA instalável.
+Ajustes finos de responsividade móvel e transformação do app em PWA instalável no celular.
 
-### ⬜ Fase 7 — Migração dos dados da planilha antiga (não iniciada, proposital)
-Normalizar (categorias, formas de pagamento, valores, datas) e importar as
-~2700 linhas de lançamentos históricos + histórico de saldos/investimentos.
-Vai resolver a imprecisão do Saldo Acumulado (que hoje começa do zero).
+### ⬜ Fase 7 — Migração dos dados da planilha antiga (não iniciada)
+Importação das ~2700 linhas históricas da planilha normalizando datas, valores e categorias para corrigir a precisão do Saldo Acumulado inicial.
 
 ## 8. Bugs já resolvidos (para não repetir)
 
-1. **Acentuação corrompida (mojibake)**: causa era `seed.sql` sem `SET NAMES
-   utf8mb4;`. Corrigido — sempre incluir essa linha em scripts SQL novos.
-2. **Gráfico de rosca não aparecia**: causa era usar Chart.js versão `4.4.4`,
-   que não existe no cdnjs. Corrigido para `4.4.1`. Adicionamos também uma
-   verificação defensiva no JS (`typeof Chart === 'undefined'`) pra não quebrar
-   silenciosamente se o CDN falhar de novo.
-3. **RendimentosInvestimentosController não recebia todas as dependências no
-   `index.php`** (só passava 1 argumento ao invés de 5) — corrigido.
+1. **Acentuação corrompida (mojibake)**: causa era `seed.sql` sem `SET NAMES utf8mb4;`. Corrigido — sempre incluir essa linha em scripts SQL novos.
+2. **Gráfico de rosca não aparecia**: causa era usar Chart.js versão `4.4.4`, que não existe no cdnjs. Corrigido para `4.4.1`. Adicionamos também uma verificação defensiva no JS (`typeof Chart === 'undefined'`) pra não quebrar silenciosamente se o CDN falhar de novo.
+3. **RendimentosInvestimentosController não recebia todas as dependências no `index.php`** (só passava 1 argumento ao invés de 5) — corrigido.
 
 ## 9. Como retomar
 
-1. Cole este arquivo no início de uma nova conversa com o Claude.
-2. Diga que quer continuar de onde parou: terminar a Fase 4 (JS do cálculo
-   automático de preço unitário + tabela de histórico de rendimentos + testar
-   o fluxo de rendimento→lançamento automático), depois seguir pra Fase 5.
-3. O projeto local do usuário já reflete tudo isso (ele foi aplicando os zips
-   incrementais que o Claude gerou a cada fase). Não é necessário re-enviar o
-   projeto inteiro do zero — só os arquivos/trechos que mudarem a partir de
-   agora.
+1. Leia este arquivo e o [CHANGELOG-configuracoes.md](file:///c:/Users/Fernando/Documents/_Projetosfinancas/projeto-financas/logs/CHANGELOG-configuracoes.md) para entender a última entrega feita.
+2. Escolha o próximo objetivo: iniciar a Fase 6 (PWA / Responsividade Mobile) ou trabalhar na migração da planilha antiga (Fase 7).
+3. O projeto local já reflete todas as modificações listadas.
