@@ -120,53 +120,78 @@ class FluxoCaixa
     }
 
     /**
-     * Estima quantos meses o saldo acumulado atual dura, no ritmo médio
-     * de gastos dos últimos meses (considerando só despesas, sem receita).
-     * Retorna null se não houver dados suficientes ou gasto médio zerado.
+     * Projeta o saldo do mês e o saldo acumulado para os próximos meses a
+     * partir do saldo acumulado real atual, usando os Lançamentos Recorrentes
+     * cadastrados (receitas, despesas fixas e dívidas/parcelas). Despesas
+     * variáveis nunca entram na projeção futura (sempre R$0).
+     *
+     * Retorna:
+     * - 'meses': array com $horizonteMeses entradas: mes, ano, rotulo (ex:
+     *   'jan/26'), receitas, despesas_fixas, dividas, saldo_projetado,
+     *   saldo_acumulado_projetado
+     * - 'mes_esgotamento': null, ou {mes, ano, rotulo} do primeiro mês em que
+     *   o saldo acumulado projetado fica <= 0 (procurado até 60 meses à
+     *   frente, mesmo que seja além do horizonte exibido)
      */
-    public function folegoFinanceiro(int $usuarioId, int $mes, int $ano, int $mesesParaMedia = 3): ?array
-    {
-        $totalGastos = 0;
-        $mesesComDados = 0;
-        $data = new DateTime("{$ano}-{$mes}-01");
+    public function projecaoAnualRecorrentes(
+        RecorrenteFinanceiro $recorrentes,
+        int $usuarioId,
+        int $horizonteMeses = 12
+    ): array {
+        $hoje = new DateTime('now');
+        $mesAtual = (int) $hoje->format('n');
+        $anoAtual = (int) $hoje->format('Y');
 
-        for ($i = 0; $i < $mesesParaMedia; $i++) {
-            $referencia = (clone $data)->modify("-{$i} months");
+        $saldoAcumulado = $this->saldoAcumulado($usuarioId, $mesAtual, $anoAtual);
+
+        $nomesMesesAbrev = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+        $meses = [];
+        $mesEsgotamento = null;
+        $limiteBusca = max($horizonteMeses, 60);
+
+        for ($i = 1; $i <= $limiteBusca; $i++) {
+            $referencia = (clone $hoje)->modify("+{$i} months");
             $m = (int) $referencia->format('n');
             $a = (int) $referencia->format('Y');
 
-            $stmt = $this->pdo->prepare(
-                "SELECT COALESCE(SUM(l.valor), 0)
-                 FROM lancamentos l
-                 JOIN categorias c ON c.id = l.categoria_id
-                 WHERE l.usuario_id = :usuario_id
-                    AND c.tipo != 'receita'
-                    AND MONTH(l.data) = :mes
-                    AND YEAR(l.data) = :ano"
-            );
-            $stmt->execute(['usuario_id' => $usuarioId, 'mes' => $m, 'ano' => $a]);
-            $gastoDoMes = (float) $stmt->fetchColumn();
+            $receitas = $recorrentes->totalPorTipoNoMes($usuarioId, 'receita', $m, $a);
+            $despesasFixas = $recorrentes->totalPorTipoNoMes($usuarioId, 'despesa_fixa', $m, $a);
+            $dividas = $recorrentes->totalPorTipoNoMes($usuarioId, 'divida_parcelada', $m, $a);
+            // Despesas variáveis futuras propositalmente NÃO entram aqui (sempre R$0).
 
-            if ($gastoDoMes > 0) {
-                $totalGastos += $gastoDoMes;
-                $mesesComDados++;
+            $saldoProjetado = $receitas - $despesasFixas - $dividas;
+            $saldoAcumulado += $saldoProjetado;
+
+            if ($mesEsgotamento === null && $saldoAcumulado <= 0) {
+                $mesEsgotamento = [
+                    'mes' => $m,
+                    'ano' => $a,
+                    'rotulo' => $nomesMesesAbrev[$m - 1] . '/' . substr((string) $a, 2),
+                ];
+            }
+
+            if ($i <= $horizonteMeses) {
+                $meses[] = [
+                    'mes' => $m,
+                    'ano' => $a,
+                    'rotulo' => $nomesMesesAbrev[$m - 1] . '/' . substr((string) $a, 2),
+                    'receitas' => round($receitas, 2),
+                    'despesas_fixas' => round($despesasFixas, 2),
+                    'dividas' => round($dividas, 2),
+                    'saldo_projetado' => round($saldoProjetado, 2),
+                    'saldo_acumulado_projetado' => round($saldoAcumulado, 2),
+                ];
+            }
+
+            if ($i >= $horizonteMeses && $mesEsgotamento !== null) {
+                break;
             }
         }
 
-        if ($mesesComDados === 0) {
-            return null;
-        }
-
-        $mediaGastos = $totalGastos / $mesesComDados;
-        $saldoAtual = $this->saldoAcumulado($usuarioId, $mes, $ano);
-
-        if ($mediaGastos <= 0 || $saldoAtual <= 0) {
-            return ['media_gastos_mensais' => $mediaGastos, 'meses_de_folego' => null];
-        }
-
         return [
-            'media_gastos_mensais' => $mediaGastos,
-            'meses_de_folego' => round($saldoAtual / $mediaGastos, 1),
+            'meses' => $meses,
+            'mes_esgotamento' => $mesEsgotamento,
         ];
     }
 }

@@ -25,6 +25,7 @@
             <button class="tab-btn ativo" data-tab="visao-geral" role="tab">Visão Geral & Reconciliação</button>
             <button class="tab-btn" data-tab="fluxo-caixa" role="tab">Fluxo de Caixa Detalhado</button>
             <button class="tab-btn" data-tab="lancar-saldos" role="tab">Lançar Saldos</button>
+            <button class="tab-btn" data-tab="folego" role="tab">Fôlego Financeiro</button>
         </div>
 
         <div id="tab-visao-geral" class="tab-painel ativo">
@@ -74,11 +75,6 @@
                         </tr>
                     </tbody>
                 </table>
-            </section>
-
-            <section class="card" id="card-folego">
-                <h2>Fôlego Financeiro</h2>
-                <p id="texto-folego">Carregando...</p>
             </section>
 
             <section class="card">
@@ -159,6 +155,54 @@
                         <button type="submit">Cadastrar Conta</button>
                     </div>
                 </form>
+            </section>
+        </div>
+
+        <div id="tab-folego" class="tab-painel">
+            <section class="card">
+                <div class="seletor-periodo">
+                    <div class="campo">
+                        <label for="horizonte-folego">Horizonte da Projeção</label>
+                        <select id="horizonte-folego">
+                            <option value="12" selected>Próximos 12 meses</option>
+                            <option value="24">Próximos 24 meses</option>
+                            <option value="36">Próximos 3 anos</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card" id="card-folego-anual">
+                <h2>Fôlego Financeiro</h2>
+                <p class="ajuda">
+                    Projeta seu saldo acumulado para os próximos meses, com base no
+                    saldo atual e nos Lançamentos Recorrentes cadastrados em
+                    Configurações → Recorrentes (receitas fixas, despesas fixas e
+                    dívidas/parcelas). Despesas variáveis do dia a dia não entram
+                    nessa projeção, por serem imprevisíveis.
+                </p>
+
+                <div class="tabela-scroll-horizontal">
+                    <table class="tabela-projecao-folego">
+                        <thead>
+                            <tr id="cabecalho-projecao-folego"></tr>
+                        </thead>
+                        <tbody>
+                            <tr id="linha-receitas-projecao"></tr>
+                            <tr id="linha-despesas-fixas-projecao"></tr>
+                            <tr id="linha-dividas-projecao"></tr>
+                            <tr id="linha-saldo-projecao"></tr>
+                            <tr id="linha-saldo-acumulado-projecao"></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p id="texto-esgotamento-folego" class="ajuda"></p>
+                <p id="mensagem-sem-recorrentes" hidden>
+                    Você ainda não cadastrou nenhum Lançamento Recorrente. Cadastre em
+                    <a href="/app/configuracoes.html">Configurações → Recorrentes</a>
+                    para ver a projeção calculada aqui.
+                </p>
             </section>
         </div>
     </main>

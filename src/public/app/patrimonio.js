@@ -19,8 +19,6 @@ const formConta = document.getElementById('form-conta');
 const campoContaNome = document.getElementById('conta-nome');
 const campoContaTipo = document.getElementById('conta-tipo');
 
-const textoFolego = document.getElementById('texto-folego');
-const cardFolego = document.getElementById('card-folego');
 const corpoTabelaFluxo = document.getElementById('corpo-tabela-fluxo');
 const canvasGraficoSaldoCaixa = document.getElementById('grafico-saldo-caixa');
 
@@ -228,36 +226,8 @@ async function carregarFluxoCaixa() {
     const resposta = await fetch(`${API_BASE}/fluxo-caixa?mes=${mes}&ano=${ano}&meses=${horizonte}`);
     const dados = await resposta.json();
 
-    renderizarFolego(dados.folego_financeiro);
     renderizarTabelaFluxo(dados.serie);
     renderizarGraficoSaldoCaixa(dados.serie);
-}
-
-function renderizarFolego(folego) {
-    if (cardFolego) {
-        cardFolego.classList.remove('folego-alerta');
-    }
-
-    if (!folego) {
-        textoFolego.textContent = 'Ainda não há dados suficientes para calcular o fôlego financeiro.';
-        return;
-    }
-
-    if (folego.meses_de_folego === null) {
-        textoFolego.innerHTML = `Gasto médio mensal (últimos meses): <strong>${formatarMoeda(folego.media_gastos_mensais)}</strong>.
-            Não foi possível estimar o fôlego (saldo acumulado zerado ou negativo).`;
-        if (cardFolego) {
-            cardFolego.classList.add('folego-alerta');
-        }
-        return;
-    }
-
-    textoFolego.innerHTML = `No ritmo atual de gastos (média de <strong>${formatarMoeda(folego.media_gastos_mensais)}</strong>/mês),
-        seu saldo dura aproximadamente <strong>${folego.meses_de_folego} meses</strong> sem nenhuma entrada nova.`;
-
-    if (folego.meses_de_folego < 2 && cardFolego) {
-        cardFolego.classList.add('folego-alerta');
-    }
 }
 
 function renderizarTabelaFluxo(serie) {
@@ -339,5 +309,93 @@ formConta.addEventListener('submit', async (evento) => {
     await carregarSaldosDoMes();
 });
 
+const seletorHorizonteFolego = document.getElementById('horizonte-folego');
+
+async function carregarFolegoAnual() {
+    const horizonte = seletorHorizonteFolego.value;
+    const resposta = await fetch(`${API_BASE}/folego-anual?horizonte=${horizonte}`);
+    const dados = await resposta.json();
+    renderizarFolegoAnual(dados);
+}
+
+function renderizarFolegoAnual(dados) {
+    const cabecalho = document.getElementById('cabecalho-projecao-folego');
+    const linhaReceitas = document.getElementById('linha-receitas-projecao');
+    const linhaDespesasFixas = document.getElementById('linha-despesas-fixas-projecao');
+    const linhaDividas = document.getElementById('linha-dividas-projecao');
+    const linhaSaldo = document.getElementById('linha-saldo-projecao');
+    const linhaAcumulado = document.getElementById('linha-saldo-acumulado-projecao');
+    const textoEsgotamento = document.getElementById('texto-esgotamento-folego');
+    const mensagemSemRecorrentes = document.getElementById('mensagem-sem-recorrentes');
+
+    if (!dados || !dados.meses || dados.meses.length === 0) {
+        cabecalho.innerHTML = '';
+        linhaReceitas.innerHTML = '';
+        linhaDespesasFixas.innerHTML = '';
+        linhaDividas.innerHTML = '';
+        linhaSaldo.innerHTML = '';
+        linhaAcumulado.innerHTML = '';
+        textoEsgotamento.textContent = '';
+        return;
+    }
+
+    const nenhumRecorrente = dados.meses.every((m) =>
+        m.receitas === 0 && m.despesas_fixas === 0 && m.dividas === 0
+    );
+    mensagemSemRecorrentes.hidden = !nenhumRecorrente;
+
+    cabecalho.innerHTML = '<th>Descrição</th>' +
+        dados.meses.map((m) => `<th>${m.rotulo}</th>`).join('');
+
+    linhaReceitas.innerHTML = '<td>Receitas Recorrentes</td>' +
+        dados.meses.map((m) => `<td class="valor-positivo">${formatarMoeda(m.receitas)}</td>`).join('');
+
+    linhaDespesasFixas.innerHTML = '<td>Despesas Fixas Recorrentes</td>' +
+        dados.meses.map((m) => `<td class="valor-negativo">${formatarMoeda(m.despesas_fixas)}</td>`).join('');
+
+    linhaDividas.innerHTML = '<td>Dívidas / Parcelas Recorrentes</td>' +
+        dados.meses.map((m) => `<td class="valor-negativo">${formatarMoeda(m.dividas)}</td>`).join('');
+
+    linhaSaldo.innerHTML = '<td><strong>Saldo do Mês (projetado)</strong></td>' +
+        dados.meses.map((m) => {
+            const classe = m.saldo_projetado < 0 ? 'valor-negativo' : 'valor-positivo';
+            return `<td class="${classe}"><strong>${formatarMoeda(m.saldo_projetado)}</strong></td>`;
+        }).join('');
+
+    linhaAcumulado.innerHTML = '<td><strong>Saldo Acumulado (projetado)</strong></td>' +
+        dados.meses.map((m) => {
+            const classe = m.saldo_acumulado_projetado < 0 ? 'valor-negativo' : 'valor-positivo';
+            return `<td class="${classe}"><strong>${formatarMoeda(m.saldo_acumulado_projetado)}</strong></td>`;
+        }).join('');
+
+    if (dados.mes_esgotamento) {
+        textoEsgotamento.innerHTML = `⚠️ No ritmo atual dos seus recorrentes cadastrados, seu saldo acumulado
+            deve se esgotar por volta de <strong>${dados.mes_esgotamento.rotulo}</strong>.`;
+    } else {
+        textoEsgotamento.innerHTML = `No ritmo atual dos seus recorrentes cadastrados, seu saldo acumulado deve
+            se manter positivo por, pelo menos, os próximos ${dados.meses.length} meses.`;
+    }
+}
+
+if (seletorHorizonteFolego) {
+    seletorHorizonteFolego.addEventListener('change', carregarFolegoAnual);
+}
+
+// Vincula o carregamento do fôlego à mudança de abas
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (btn.dataset.tab === 'folego') {
+            carregarFolegoAnual();
+        }
+    });
+});
+
 iniciarSeletores();
 carregarTudo();
+
+// Carrega o fôlego também se for a aba inicial carregada
+const storageKey = `activeTab_${window.location.pathname}`;
+const activeTab = localStorage.getItem(storageKey);
+if (activeTab === 'folego') {
+    carregarFolegoAnual();
+}

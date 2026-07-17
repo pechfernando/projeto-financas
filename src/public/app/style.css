@@ -408,4 +408,31 @@ th {
     font-weight: 600;
 }
 
+.tabela-scroll-horizontal {
+    overflow-x: auto;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+.tabela-projecao-folego {
+    border-collapse: collapse;
+    white-space: nowrap;
+    width: 100%;
+}
+.tabela-projecao-folego th,
+.tabela-projecao-folego td {
+    padding: 6px 10px;
+    text-align: right;
+    border-bottom: 1px solid #ddd;
+}
+.tabela-projecao-folego th:first-child,
+.tabela-projecao-folego td:first-child {
+    text-align: left;
+    position: sticky;
+    left: 0;
+    background: #fff;
+}
+
+.valor-negativo { color: #c0392b; font-weight: 600; }
+.valor-positivo { color: #1a9c6d; font-weight: 600; }
+
 

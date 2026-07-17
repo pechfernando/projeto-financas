@@ -597,7 +597,205 @@ formSaldoInicial.addEventListener('submit', async (evento) => {
     }
 });
 
+// ---------------------------------------------------------------------
+// Lançamentos Recorrentes
+// ---------------------------------------------------------------------
+
+const formRecorrente = document.getElementById('form-recorrente');
+const campoRecorrenteId = document.getElementById('recorrente-id');
+const campoRecorrenteAtivo = document.getElementById('recorrente-ativo');
+const campoRecorrenteTipo = document.getElementById('recorrente-tipo');
+const campoRecorrenteDescricao = document.getElementById('recorrente-descricao');
+const campoRecorrenteValor = document.getElementById('recorrente-valor');
+const campoRecorrenteDataInicio = document.getElementById('recorrente-data-inicio');
+const campoRecorrenteDataFim = document.getElementById('recorrente-data-fim');
+const tituloFormRecorrente = document.getElementById('titulo-form-recorrente');
+const botaoSalvarRecorrente = document.getElementById('botao-salvar-recorrente');
+const botaoCancelarRecorrente = document.getElementById('botao-cancelar-recorrente');
+const mensagemErroRecorrente = document.getElementById('mensagem-erro-recorrente');
+const mensagemSucessoRecorrente = document.getElementById('mensagem-sucesso-recorrente');
+const corpoTabelaRecorrentes = document.getElementById('corpo-tabela-recorrentes');
+
+const ROTULOS_TIPO_RECORRENTE = {
+    receita: 'Receita Fixa',
+    despesa_fixa: 'Despesa Fixa',
+    divida_parcelada: 'Dívida / Parcela',
+};
+
+async function carregarRecorrentes() {
+    const resposta = await fetch(`${API_BASE}/recorrentes?todas=1`);
+    const recorrentes = await resposta.json();
+    renderizarTabelaRecorrentes(recorrentes);
+}
+
+function renderizarTabelaRecorrentes(recorrentes) {
+    if (recorrentes.length === 0) {
+        corpoTabelaRecorrentes.innerHTML = '<tr><td colspan="7">Nenhum lançamento recorrente cadastrado ainda.</td></tr>';
+        return;
+    }
+
+    corpoTabelaRecorrentes.innerHTML = '';
+
+    for (const item of recorrentes) {
+        const linha = document.createElement('tr');
+        const statusClasse = item.ativo == 1 ? 'status-pago' : 'status-pendente';
+        const statusTexto = item.ativo == 1 ? 'Ativo' : 'Inativo';
+        const rotuloAcaoAtivo = item.ativo == 1 ? 'Desativar' : 'Reativar';
+
+        const formatarMesAno = (dataStr) => {
+            if (!dataStr) return '—';
+            const partes = dataStr.split('-');
+            return `${partes[1]}/${partes[0]}`;
+        };
+
+        linha.innerHTML = `
+            <td data-rotulo="Tipo">${ROTULOS_TIPO_RECORRENTE[item.tipo] ?? item.tipo}</td>
+            <td data-rotulo="Descrição">${item.descricao}</td>
+            <td data-rotulo="Valor Mensal">${formatarMoeda(item.valor_mensal)}</td>
+            <td data-rotulo="Início">${formatarMesAno(item.data_inicio)}</td>
+            <td data-rotulo="Fim">${formatarMesAno(item.data_fim)}</td>
+            <td data-rotulo="Status"><span class="${statusClasse}">${statusTexto}</span></td>
+            <td class="acoes-linha">
+                <button type="button" data-acao="editar" data-id="${item.id}">Editar</button>
+                <button type="button" data-acao="alternar-ativo" data-id="${item.id}" class="${item.ativo == 1 ? 'apagar' : 'secundario'}">${rotuloAcaoAtivo}</button>
+                <button type="button" data-acao="excluir" data-id="${item.id}" class="apagar">Excluir</button>
+            </td>
+        `;
+        corpoTabelaRecorrentes.appendChild(linha);
+    }
+}
+
+formRecorrente.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    esconderMensagens(mensagemErroRecorrente, mensagemSucessoRecorrente);
+
+    const dataInicio = campoRecorrenteDataInicio.value ? `${campoRecorrenteDataInicio.value}-01` : '';
+    const dataFim = campoRecorrenteDataFim.value ? `${campoRecorrenteDataFim.value}-01` : null;
+
+    const dados = {
+        tipo: campoRecorrenteTipo.value,
+        descricao: campoRecorrenteDescricao.value.trim(),
+        valor_mensal: Number(campoRecorrenteValor.value) || 0,
+        data_inicio: dataInicio,
+        data_fim: dataFim,
+        ativo: campoRecorrenteAtivo.value === '1',
+    };
+
+    const id = campoRecorrenteId.value;
+    const url = id ? `${API_BASE}/recorrentes/${id}` : `${API_BASE}/recorrentes`;
+    const metodo = id ? 'PUT' : 'POST';
+
+    const resposta = await fetch(url, {
+        method: metodo,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados),
+    });
+
+    const resultado = await resposta.json();
+
+    if (!resposta.ok) {
+        mostrarMensagem(mensagemErroRecorrente, resultado.erro ?? 'Erro ao salvar lançamento recorrente');
+        return;
+    }
+
+    limparFormularioRecorrente();
+    mostrarMensagem(mensagemSucessoRecorrente, 'Recorrente salvo com sucesso!');
+    await carregarRecorrentes();
+});
+
+corpoTabelaRecorrentes.addEventListener('click', async (evento) => {
+    const botao = evento.target.closest('button');
+    if (!botao) return;
+
+    const id = botao.dataset.id;
+
+    if (botao.dataset.acao === 'editar') {
+        await preencherFormularioRecorrenteParaEdicao(id);
+    }
+
+    if (botao.dataset.acao === 'alternar-ativo') {
+        await alternarAtivoRecorrente(id);
+    }
+
+    if (botao.dataset.acao === 'excluir') {
+        await excluirRecorrente(id);
+    }
+});
+
+async function preencherFormularioRecorrenteParaEdicao(id) {
+    const resposta = await fetch(`${API_BASE}/recorrentes/${id}`);
+    const item = await resposta.json();
+
+    campoRecorrenteId.value = item.id;
+    campoRecorrenteAtivo.value = item.ativo;
+    campoRecorrenteTipo.value = item.tipo;
+    campoRecorrenteDescricao.value = item.descricao;
+    campoRecorrenteValor.value = item.valor_mensal;
+    
+    campoRecorrenteDataInicio.value = item.data_inicio ? item.data_inicio.substring(0, 7) : '';
+    campoRecorrenteDataFim.value = item.data_fim ? item.data_fim.substring(0, 7) : '';
+
+    tituloFormRecorrente.textContent = 'Editar Lançamento Recorrente';
+    botaoSalvarRecorrente.textContent = 'Salvar Alterações';
+    botaoCancelarRecorrente.hidden = false;
+    esconderMensagens(mensagemErroRecorrente, mensagemSucessoRecorrente);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function alternarAtivoRecorrente(id) {
+    const resposta = await fetch(`${API_BASE}/recorrentes/${id}`);
+    const item = await resposta.json();
+
+    const novoStatusAtivo = item.ativo == 1 ? 0 : 1;
+    const pergunta = novoStatusAtivo === 0
+        ? 'Desativar esse recorrente? Ele vai parar de contar na projeção do Fôlego Financeiro a partir de agora.'
+        : 'Reativar esse recorrente? Ele voltará a contar na projeção do Fôlego Financeiro.';
+
+    if (!confirm(pergunta)) return;
+
+    await fetch(`${API_BASE}/recorrentes/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            tipo: item.tipo,
+            descricao: item.descricao,
+            valor_mensal: item.valor_mensal,
+            data_inicio: item.data_inicio,
+            data_fim: item.data_fim,
+            ativo: novoStatusAtivo === 1,
+        }),
+    });
+
+    await carregarRecorrentes();
+}
+
+botaoCancelarRecorrente.addEventListener('click', limparFormularioRecorrente);
+
+function limparFormularioRecorrente() {
+    formRecorrente.reset();
+    campoRecorrenteId.value = '';
+    campoRecorrenteAtivo.value = '1';
+    tituloFormRecorrente.textContent = 'Novo Lançamento Recorrente';
+    botaoSalvarRecorrente.textContent = 'Adicionar Recorrente';
+    botaoCancelarRecorrente.hidden = true;
+}
+
+async function excluirRecorrente(id) {
+    if (!confirm('Excluir definitivamente esse recorrente? Essa ação não pode ser desfeita e ele deixará de contar na projeção do Fôlego Financeiro.')) return;
+
+    const resposta = await fetch(`${API_BASE}/recorrentes/${id}`, { method: 'DELETE' });
+    const resultado = await resposta.json();
+
+    if (!resposta.ok) {
+        alert(resultado.erro ?? 'Erro ao excluir lançamento recorrente.');
+        return;
+    }
+
+    await carregarRecorrentes();
+}
+
 carregarCategorias();
 carregarFormas();
 carregarContas();
+carregarRecorrentes();
 carregarSaldoInicial();

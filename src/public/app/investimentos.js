@@ -13,6 +13,35 @@ const mensagemSucesso = document.getElementById('mensagem-sucesso-investimentos'
 
 const campoMovAtivo = document.getElementById('mov-ativo');
 const campoRendAtivo = document.getElementById('rend-ativo');
+
+const campoMovQuantidade = document.getElementById('mov-quantidade');
+const campoMovPrecoUnitario = document.getElementById('mov-preco-unitario');
+const campoMovValorTotal = document.getElementById('mov-valor-total');
+
+let valorTotalEditadoManualmente = false;
+
+function recalcularValorTotal() {
+    if (valorTotalEditadoManualmente) return;
+
+    const quantidade = parseFloat(campoMovQuantidade.value);
+    const precoUnitario = parseFloat(campoMovPrecoUnitario.value);
+
+    if (!isNaN(quantidade) && !isNaN(precoUnitario)) {
+        campoMovValorTotal.value = (quantidade * precoUnitario).toFixed(2);
+    }
+}
+
+function reativarCalculoAutomatico() {
+    valorTotalEditadoManualmente = false;
+    recalcularValorTotal();
+}
+
+campoMovQuantidade.addEventListener('input', reativarCalculoAutomatico);
+campoMovPrecoUnitario.addEventListener('input', reativarCalculoAutomatico);
+
+campoMovValorTotal.addEventListener('input', () => {
+    valorTotalEditadoManualmente = true;
+});
 const campoRendMes = document.getElementById('rend-mes');
 const campoRendAno = document.getElementById('rend-ano');
 
@@ -226,6 +255,7 @@ formMovimentacao.addEventListener('submit', async (evento) => {
     });
 
     formMovimentacao.reset();
+    valorTotalEditadoManualmente = false;
     document.getElementById('mov-data').value = new Date().toISOString().slice(0, 10);
     exibirMensagemSucesso('Compra registrada com sucesso!');
     await carregarCarteira();

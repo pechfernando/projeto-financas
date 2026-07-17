@@ -32,6 +32,7 @@ require_once __DIR__ . '/../../app/Models/Ativo.php';
 require_once __DIR__ . '/../../app/Models/MovimentacaoInvestimento.php';
 require_once __DIR__ . '/../../app/Models/RendimentoInvestimento.php';
 require_once __DIR__ . '/../../app/Models/Patrimonio.php';
+require_once __DIR__ . '/../../app/Models/RecorrenteFinanceiro.php';
 
 require_once __DIR__ . '/../../app/Api/Controllers/LancamentosController.php';
 require_once __DIR__ . '/../../app/Api/Controllers/CategoriasController.php';
@@ -43,6 +44,7 @@ require_once __DIR__ . '/../../app/Api/Controllers/AtivosController.php';
 require_once __DIR__ . '/../../app/Api/Controllers/MovimentacoesInvestimentosController.php';
 require_once __DIR__ . '/../../app/Api/Controllers/RendimentosInvestimentosController.php';
 require_once __DIR__ . '/../../app/Api/Controllers/PatrimonioController.php';
+require_once __DIR__ . '/../../app/Api/Controllers/RecorrentesController.php';
 
 // Trata qualquer erro inesperado como uma resposta JSON (em vez de
 // devolver uma página de erro HTML, que quebraria o frontend)
@@ -57,7 +59,9 @@ $categoriasController = new CategoriasController(new Categoria($pdo));
 $formasPagamentoController = new FormasPagamentoController(new FormaPagamento($pdo));
 $relatorioMensalController = new RelatorioMensalController(new RelatorioMensal($pdo));
 $orcamentoController = new OrcamentoController(new Orcamento($pdo));
-$fluxoCaixaController = new FluxoCaixaController(new FluxoCaixa($pdo));
+$recorrenteFinanceiro = new RecorrenteFinanceiro($pdo);
+$recorrentesController = new RecorrentesController($recorrenteFinanceiro);
+$fluxoCaixaController = new FluxoCaixaController(new FluxoCaixa($pdo), $recorrenteFinanceiro);
 $ativosController = new AtivosController(new Ativo($pdo));
 $movimentacoesController = new MovimentacoesInvestimentosController(new MovimentacaoInvestimento($pdo));
 $rendimentosController = new RendimentosInvestimentosController(
@@ -95,6 +99,16 @@ $router->get('/relatorio-mensal', [$relatorioMensalController, 'resumo']);
 $router->get('/orcamento-mensal', [$orcamentoController, 'listar']);
 $router->post('/orcamento-mensal', [$orcamentoController, 'salvar']);
 $router->post('/orcamento-mensal/copiar-mes-anterior', [$orcamentoController, 'copiarMesAnterior']);
+
+// Lançamentos Recorrentes
+$router->get('/recorrentes', [$recorrentesController, 'listar']);
+$router->get('/recorrentes/{id}', [$recorrentesController, 'buscar']);
+$router->post('/recorrentes', [$recorrentesController, 'criar']);
+$router->put('/recorrentes/{id}', [$recorrentesController, 'atualizar']);
+$router->delete('/recorrentes/{id}', [$recorrentesController, 'apagar']);
+
+// Fôlego Financeiro (projeção anual)
+$router->get('/folego-anual', [$fluxoCaixaController, 'folegoAnual']);
 
 // Fluxo de caixa
 $router->get('/fluxo-caixa', [$fluxoCaixaController, 'resumo']);

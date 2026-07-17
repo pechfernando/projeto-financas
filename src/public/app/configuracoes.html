@@ -24,6 +24,7 @@
             <button class="tab-btn ativo" data-tab="categorias" role="tab">Categorias</button>
             <button class="tab-btn" data-tab="formas" role="tab">Formas de Pagamento</button>
             <button class="tab-btn" data-tab="contas" role="tab">Contas Patrimoniais</button>
+            <button class="tab-btn" data-tab="recorrentes" role="tab">Recorrentes</button>
             <button class="tab-btn" data-tab="gerais" role="tab">Gerais</button>
         </div>
 
@@ -203,6 +204,80 @@
                     </thead>
                     <tbody id="corpo-tabela-contas">
                         <tr><td colspan="5">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+
+        <div id="tab-recorrentes" class="tab-painel">
+            <section class="card">
+                <h2 id="titulo-form-recorrente">Novo Lançamento Recorrente</h2>
+                <p class="ajuda">
+                    Cadastre aqui valores que se repetem todo mês (ex: aluguel, mesada,
+                    parcela de financiamento) para que eles entrem automaticamente na
+                    projeção do Fôlego Financeiro (aba Patrimônio). Despesas variáveis
+                    do dia a dia não devem ser cadastradas aqui — a projeção considera
+                    elas como imprevisíveis.
+                </p>
+                <form id="form-recorrente">
+                    <input type="hidden" id="recorrente-id">
+                    <input type="hidden" id="recorrente-ativo" value="1">
+
+                    <div class="campo">
+                        <label for="recorrente-tipo">Tipo</label>
+                        <select id="recorrente-tipo" required>
+                            <option value="receita">Receita Fixa</option>
+                            <option value="despesa_fixa">Despesa Fixa</option>
+                            <option value="divida_parcelada">Dívida / Parcela</option>
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label for="recorrente-descricao">Descrição</label>
+                        <input type="text" id="recorrente-descricao" placeholder="Ex: Pai - Mercado, FIES, Terapia" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="recorrente-valor">Valor Mensal (R$)</label>
+                        <input type="number" id="recorrente-valor" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="recorrente-data-inicio">A partir de (mês/ano)</label>
+                        <input type="month" id="recorrente-data-inicio" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="recorrente-data-fim">Até (mês/ano) — opcional, deixe em branco se não tem previsão de acabar</label>
+                        <input type="month" id="recorrente-data-fim">
+                    </div>
+
+                    <div class="acoes-formulario">
+                        <button type="submit" id="botao-salvar-recorrente">Adicionar Recorrente</button>
+                        <button type="button" id="botao-cancelar-recorrente" class="secundario" hidden>Cancelar edição</button>
+                    </div>
+
+                    <p id="mensagem-erro-recorrente" class="mensagem-erro" hidden></p>
+                    <p id="mensagem-sucesso-recorrente" class="mensagem-sucesso" hidden>Recorrente salvo com sucesso!</p>
+                </form>
+            </section>
+
+            <section class="card">
+                <h2>Lançamentos Recorrentes Cadastrados</h2>
+                <table id="tabela-recorrentes">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Descrição</th>
+                            <th>Valor Mensal</th>
+                            <th>Início</th>
+                            <th>Fim</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela-recorrentes">
+                        <tr><td colspan="7">Carregando...</td></tr>
                     </tbody>
                 </table>
             </section>
