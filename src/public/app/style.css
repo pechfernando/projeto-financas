@@ -435,4 +435,16 @@ th {
 .valor-negativo { color: #c0392b; font-weight: 600; }
 .valor-positivo { color: #1a9c6d; font-weight: 600; }
 
+.coluna-real {
+    background-color: #eef6ff;
+}
+.coluna-projetada {
+    background-color: #fffbea;
+}
+.tabela-projecao-folego small {
+    font-weight: normal;
+    color: #666;
+    font-size: 0.75em;
+}
+
 

@@ -131,9 +131,46 @@ form.addEventListener('submit', async (evento) => {
         return;
     }
 
+    // NOVO: substitui automaticamente o valor do recorrente vinculado a essa
+    // categoria, se existir e o valor lançado for diferente do cadastrado.
+    await sincronizarValorRecorrente(dados.categoria_id, dados.valor);
+
     limparFormulario();
     await carregarLancamentos();
 });
+
+async function sincronizarValorRecorrente(categoriaId, valorLancado) {
+    try {
+        const resposta = await fetch(`${API_BASE}/recorrentes/por-categoria/${categoriaId}`);
+        if (!resposta.ok) return;
+
+        const recorrente = await resposta.json();
+        if (!recorrente) return; // nenhum recorrente vinculado a essa categoria
+
+        const valorNovo = parseFloat(valorLancado);
+        const valorAtualRecorrente = parseFloat(recorrente.valor_mensal);
+
+        if (valorNovo !== valorAtualRecorrente) {
+            await fetch(`${API_BASE}/recorrentes/${recorrente.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tipo: recorrente.tipo,
+                    categoria_id: recorrente.categoria_id,
+                    descricao: recorrente.descricao,
+                    valor_mensal: valorNovo,
+                    data_inicio: recorrente.data_inicio,
+                    data_fim: recorrente.data_fim,
+                    ativo: recorrente.ativo,
+                }),
+            });
+        }
+    } catch (erro) {
+        // Falha silenciosa proposital: a substituição automática é uma
+        // conveniência, não pode travar o fluxo normal de lançar algo.
+        console.error('Não foi possível sincronizar o valor do recorrente:', erro);
+    }
+}
 
 corpoTabela.addEventListener('click', async (evento) => {
     const botao = evento.target.closest('button');

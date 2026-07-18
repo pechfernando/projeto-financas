@@ -25,15 +25,29 @@ class RecorrentesController
     public function criar(): void
     {
         $dados = corpoRequisicao();
-        $id = $this->recorrentes->criar(usuarioAtualId(), $dados);
-        jsonResponse(['id' => $id], 201);
+        try {
+            $id = $this->recorrentes->criar(usuarioAtualId(), $dados);
+            jsonResponse(['id' => $id], 201);
+        } catch (PDOException $e) {
+            jsonError('Erro ao criar lançamento recorrente: ' . $e->getMessage(), 500);
+        }
     }
 
     public function atualizar(array $parametros): void
     {
         $dados = corpoRequisicao();
-        $this->recorrentes->atualizar(usuarioAtualId(), (int) $parametros['id'], $dados);
-        jsonResponse(['sucesso' => true]);
+        try {
+            $this->recorrentes->atualizar(usuarioAtualId(), (int) $parametros['id'], $dados);
+            jsonResponse(['sucesso' => true]);
+        } catch (PDOException $e) {
+            jsonError('Erro ao atualizar lançamento recorrente: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function buscarPorCategoria(array $parametros): void
+    {
+        $item = $this->recorrentes->buscarPorCategoria(usuarioAtualId(), (int) $parametros['categoriaId']);
+        jsonResponse($item); // pode devolver null — o frontend já trata isso
     }
 
     public function apagar(array $parametros): void

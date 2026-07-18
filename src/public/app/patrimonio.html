@@ -162,12 +162,28 @@
             <section class="card">
                 <div class="seletor-periodo">
                     <div class="campo">
-                        <label for="horizonte-folego">Horizonte da Projeção</label>
-                        <select id="horizonte-folego">
-                            <option value="12" selected>Próximos 12 meses</option>
+                        <label for="folego-preset">Período rápido</label>
+                        <select id="folego-preset">
+                            <option value="padrao" selected>3 meses atrás até 12 meses à frente</option>
+                            <option value="12">Próximos 12 meses</option>
                             <option value="24">Próximos 24 meses</option>
                             <option value="36">Próximos 3 anos</option>
+                            <option value="personalizado">Personalizado</option>
                         </select>
+                    </div>
+
+                    <div class="campo">
+                        <label for="folego-de">De</label>
+                        <input type="month" id="folego-de">
+                    </div>
+
+                    <div class="campo">
+                        <label for="folego-ate">Até</label>
+                        <input type="month" id="folego-ate">
+                    </div>
+
+                    <div class="acoes-formulario">
+                        <button type="button" id="botao-aplicar-folego">Aplicar</button>
                     </div>
                 </div>
             </section>
@@ -191,6 +207,7 @@
                             <tr id="linha-receitas-projecao"></tr>
                             <tr id="linha-despesas-fixas-projecao"></tr>
                             <tr id="linha-dividas-projecao"></tr>
+                            <tr id="linha-despesas-variaveis-projecao"></tr>
                             <tr id="linha-saldo-projecao"></tr>
                             <tr id="linha-saldo-acumulado-projecao"></tr>
                         </tbody>

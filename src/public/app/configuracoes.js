@@ -1,5 +1,7 @@
 const API_BASE = '/api';
 
+let todasCategorias = [];
+
 // ---------------------------------------------------------------------
 // Categorias
 // ---------------------------------------------------------------------
@@ -27,8 +29,11 @@ const ROTULOS_TIPO_CATEGORIA = {
 
 async function carregarCategorias() {
     const resposta = await fetch(`${API_BASE}/categorias?todas=1`);
-    const categorias = await resposta.json();
-    renderizarTabelaCategorias(categorias);
+    todasCategorias = await resposta.json();
+    renderizarTabelaCategorias(todasCategorias);
+    if (typeof atualizarSelectCategoriasRecorrente === 'function') {
+        atualizarSelectCategoriasRecorrente();
+    }
 }
 
 function renderizarTabelaCategorias(categorias) {
@@ -606,6 +611,7 @@ const campoRecorrenteId = document.getElementById('recorrente-id');
 const campoRecorrenteAtivo = document.getElementById('recorrente-ativo');
 const campoRecorrenteTipo = document.getElementById('recorrente-tipo');
 const campoRecorrenteDescricao = document.getElementById('recorrente-descricao');
+const campoRecorrenteCategoria = document.getElementById('recorrente-categoria');
 const campoRecorrenteValor = document.getElementById('recorrente-valor');
 const campoRecorrenteDataInicio = document.getElementById('recorrente-data-inicio');
 const campoRecorrenteDataFim = document.getElementById('recorrente-data-fim');
@@ -615,6 +621,37 @@ const botaoCancelarRecorrente = document.getElementById('botao-cancelar-recorren
 const mensagemErroRecorrente = document.getElementById('mensagem-erro-recorrente');
 const mensagemSucessoRecorrente = document.getElementById('mensagem-sucesso-recorrente');
 const corpoTabelaRecorrentes = document.getElementById('corpo-tabela-recorrentes');
+
+function atualizarSelectCategoriasRecorrente(categoriaSelecionadaId = '') {
+    if (!campoRecorrenteTipo || !campoRecorrenteCategoria) return;
+    const tipoRecorrente = campoRecorrenteTipo.value;
+    
+    const mapaTipos = {
+        'receita': 'receita',
+        'despesa_fixa': 'fixa',
+        'divida_parcelada': 'dividas_parcelados'
+    };
+    const tipoCategoriaAlvo = mapaTipos[tipoRecorrente];
+    
+    const categoriasFiltradas = todasCategorias.filter(cat => 
+        (cat.tipo === tipoCategoriaAlvo && cat.ativo == 1) || cat.id == categoriaSelecionadaId
+    );
+    
+    campoRecorrenteCategoria.innerHTML = '<option value="">Nenhuma (recorrente avulso, sem lançamentos mensais)</option>';
+    for (const cat of categoriasFiltradas) {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = cat.nome;
+        campoRecorrenteCategoria.appendChild(opt);
+    }
+    campoRecorrenteCategoria.value = categoriaSelecionadaId || '';
+}
+
+if (campoRecorrenteTipo) {
+    campoRecorrenteTipo.addEventListener('change', () => {
+        atualizarSelectCategoriasRecorrente();
+    });
+}
 
 const ROTULOS_TIPO_RECORRENTE = {
     receita: 'Receita Fixa',
@@ -648,9 +685,13 @@ function renderizarTabelaRecorrentes(recorrentes) {
             return `${partes[1]}/${partes[0]}`;
         };
 
+        const nomeCategoria = item.categoria_id 
+            ? (todasCategorias.find(cat => cat.id == item.categoria_id)?.nome || 'Categoria desconhecida')
+            : '';
+
         linha.innerHTML = `
             <td data-rotulo="Tipo">${ROTULOS_TIPO_RECORRENTE[item.tipo] ?? item.tipo}</td>
-            <td data-rotulo="Descrição">${item.descricao}</td>
+            <td data-rotulo="Descrição">${item.descricao}${nomeCategoria ? ` <span class="ajuda-inline">(${nomeCategoria})</span>` : ''}</td>
             <td data-rotulo="Valor Mensal">${formatarMoeda(item.valor_mensal)}</td>
             <td data-rotulo="Início">${formatarMesAno(item.data_inicio)}</td>
             <td data-rotulo="Fim">${formatarMesAno(item.data_fim)}</td>
@@ -675,10 +716,11 @@ formRecorrente.addEventListener('submit', async (evento) => {
     const dados = {
         tipo: campoRecorrenteTipo.value,
         descricao: campoRecorrenteDescricao.value.trim(),
+        categoria_id: campoRecorrenteCategoria.value || null,
         valor_mensal: Number(campoRecorrenteValor.value) || 0,
         data_inicio: dataInicio,
         data_fim: dataFim,
-        ativo: campoRecorrenteAtivo.value === '1',
+        ativo: campoRecorrenteAtivo.value === '1' ? 1 : 0,
     };
 
     const id = campoRecorrenteId.value;
@@ -735,6 +777,8 @@ async function preencherFormularioRecorrenteParaEdicao(id) {
     campoRecorrenteDataInicio.value = item.data_inicio ? item.data_inicio.substring(0, 7) : '';
     campoRecorrenteDataFim.value = item.data_fim ? item.data_fim.substring(0, 7) : '';
 
+    atualizarSelectCategoriasRecorrente(item.categoria_id);
+
     tituloFormRecorrente.textContent = 'Editar Lançamento Recorrente';
     botaoSalvarRecorrente.textContent = 'Salvar Alterações';
     botaoCancelarRecorrente.hidden = false;
@@ -753,7 +797,7 @@ async function alternarAtivoRecorrente(id) {
 
     if (!confirm(pergunta)) return;
 
-    await fetch(`${API_BASE}/recorrentes/${id}`, {
+    const respostaAtualizacao = await fetch(`${API_BASE}/recorrentes/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -762,9 +806,17 @@ async function alternarAtivoRecorrente(id) {
             valor_mensal: item.valor_mensal,
             data_inicio: item.data_inicio,
             data_fim: item.data_fim,
-            ativo: novoStatusAtivo === 1,
+            categoria_id: item.categoria_id ?? null,
+            ativo: novoStatusAtivo,
         }),
     });
+
+    if (!respostaAtualizacao.ok) {
+        const erro = await respostaAtualizacao.json().catch(() => ({}));
+        console.error('Erro ao alternar ativo do recorrente:', erro);
+        alert(erro.erro ?? 'Erro ao atualizar o status do recorrente. Veja o console para detalhes.');
+        return;
+    }
 
     await carregarRecorrentes();
 }
@@ -775,6 +827,7 @@ function limparFormularioRecorrente() {
     formRecorrente.reset();
     campoRecorrenteId.value = '';
     campoRecorrenteAtivo.value = '1';
+    atualizarSelectCategoriasRecorrente();
     tituloFormRecorrente.textContent = 'Novo Lançamento Recorrente';
     botaoSalvarRecorrente.textContent = 'Adicionar Recorrente';
     botaoCancelarRecorrente.hidden = true;

@@ -39,8 +39,22 @@ class FluxoCaixaController
 
     public function folegoAnual(): void
     {
-        $horizonte = isset($_GET['horizonte']) ? (int) $_GET['horizonte'] : 12;
-        $projecao = $this->fluxoCaixa->projecaoAnualRecorrentes($this->recorrentes, usuarioAtualId(), $horizonte);
+        $hoje = new DateTime('now');
+
+        $mesInicio = isset($_GET['mes_inicio']) ? (int) $_GET['mes_inicio'] : (int) (clone $hoje)->modify('-3 months')->format('n');
+        $anoInicio = isset($_GET['ano_inicio']) ? (int) $_GET['ano_inicio'] : (int) (clone $hoje)->modify('-3 months')->format('Y');
+        $mesFim = isset($_GET['mes_fim']) ? (int) $_GET['mes_fim'] : (int) (new DateTime('now'))->modify('+12 months')->format('n');
+        $anoFim = isset($_GET['ano_fim']) ? (int) $_GET['ano_fim'] : (int) (new DateTime('now'))->modify('+12 months')->format('Y');
+
+        $projecao = $this->fluxoCaixa->projecaoPersonalizada(
+            $this->recorrentes,
+            usuarioAtualId(),
+            $mesInicio,
+            $anoInicio,
+            $mesFim,
+            $anoFim
+        );
+
         jsonResponse($projecao);
     }
 }

@@ -33,17 +33,18 @@ class RecorrenteFinanceiro
     {
         $stmt = $this->pdo->prepare(
             "INSERT INTO lancamentos_recorrentes
-                (usuario_id, tipo, descricao, valor_mensal, data_inicio, data_fim, ativo)
-             VALUES (:usuario_id, :tipo, :descricao, :valor_mensal, :data_inicio, :data_fim, :ativo)"
+                (usuario_id, tipo, categoria_id, descricao, valor_mensal, data_inicio, data_fim, ativo)
+             VALUES (:usuario_id, :tipo, :categoria_id, :descricao, :valor_mensal, :data_inicio, :data_fim, :ativo)"
         );
         $stmt->execute([
             'usuario_id' => $usuarioId,
             'tipo' => $dados['tipo'],
+            'categoria_id' => !empty($dados['categoria_id']) ? $dados['categoria_id'] : null,
             'descricao' => $dados['descricao'],
             'valor_mensal' => $dados['valor_mensal'],
             'data_inicio' => $dados['data_inicio'],
             'data_fim' => $dados['data_fim'] ?: null,
-            'ativo' => $dados['ativo'] ?? 1,
+            'ativo' => isset($dados['ativo']) ? (int) $dados['ativo'] : 1,
         ]);
         return (int) $this->pdo->lastInsertId();
     }
@@ -53,6 +54,7 @@ class RecorrenteFinanceiro
         $stmt = $this->pdo->prepare(
             "UPDATE lancamentos_recorrentes SET
                 tipo = :tipo,
+                categoria_id = :categoria_id,
                 descricao = :descricao,
                 valor_mensal = :valor_mensal,
                 data_inicio = :data_inicio,
@@ -62,14 +64,45 @@ class RecorrenteFinanceiro
         );
         $stmt->execute([
             'tipo' => $dados['tipo'],
+            'categoria_id' => !empty($dados['categoria_id']) ? $dados['categoria_id'] : null,
             'descricao' => $dados['descricao'],
             'valor_mensal' => $dados['valor_mensal'],
             'data_inicio' => $dados['data_inicio'],
             'data_fim' => $dados['data_fim'] ?: null,
-            'ativo' => $dados['ativo'] ?? 1,
+            'ativo' => isset($dados['ativo']) ? (int) $dados['ativo'] : 1,
             'id' => $id,
             'usuario_id' => $usuarioId,
         ]);
+    }
+
+    /**
+     * Busca o recorrente ativo vinculado a uma categoria específica, se existir.
+     * Usado para substituir automaticamente o valor_mensal quando um lançamento
+     * real diferente é registrado nessa categoria.
+     */
+    public function buscarPorCategoria(int $usuarioId, int $categoriaId): ?array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM lancamentos_recorrentes
+             WHERE usuario_id = :usuario_id AND categoria_id = :categoria_id AND ativo = 1
+             LIMIT 1"
+        );
+        $stmt->execute(['usuario_id' => $usuarioId, 'categoria_id' => $categoriaId]);
+        $resultado = $stmt->fetch();
+        return $resultado ?: null;
+    }
+
+    /**
+     * Atualiza só o valor_mensal de um recorrente (usado na substituição
+     * automática, sem precisar reenviar todos os outros campos).
+     */
+    public function atualizarValor(int $usuarioId, int $id, float $novoValor): void
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE lancamentos_recorrentes SET valor_mensal = :valor
+             WHERE id = :id AND usuario_id = :usuario_id"
+        );
+        $stmt->execute(['valor' => $novoValor, 'id' => $id, 'usuario_id' => $usuarioId]);
     }
 
     public function apagar(int $usuarioId, int $id): void

@@ -102,6 +102,7 @@ $router->post('/orcamento-mensal/copiar-mes-anterior', [$orcamentoController, 'c
 
 // Lançamentos Recorrentes
 $router->get('/recorrentes', [$recorrentesController, 'listar']);
+$router->get('/recorrentes/por-categoria/{categoriaId}', [$recorrentesController, 'buscarPorCategoria']);
 $router->get('/recorrentes/{id}', [$recorrentesController, 'buscar']);
 $router->post('/recorrentes', [$recorrentesController, 'criar']);
 $router->put('/recorrentes/{id}', [$recorrentesController, 'atualizar']);
